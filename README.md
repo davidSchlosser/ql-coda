@@ -1,4 +1,4 @@
-# ql-coda
+# ql_coda
 A remote browser and controller for the Quodlibet music player. 
 ## Features:
 + view currrent track, progress bar, volume control, skip to next, previous, random track
@@ -11,9 +11,9 @@ A remote browser and controller for the Quodlibet music player.
 Other remote options provide basic player control and track information but dont offer access to some of Quodlibet's major strengths such. as rich tagging and querying.
 ## Platforms
 + Android, Linux desktop 
-+ ql-coda is written in Flutter and Dart so should be deployaable to iOS iPhone, web, and Mac, Windows desktops where Flutter is supported. ql-coda hasn't been tested with other MQTT providers.
++ ql_coda is written in Flutter and Dart so should be deployaable to iOS iPhone, web, and Mac, Windows desktops where Flutter is supported. ql_coda hasn't been tested with other MQTT providers.
 ## Dependencies:
 + Quodlibet and Operon 4.6
 + Quodlibet MQTT plugin
 + MQTT tranport (eg Mosquitto)
-+ ql-coda-host running on the Quodlibet host+ ql-coda-host running on the Quodlibet host
++ ql_coda_host running on the Quodlibet host+ ql_coda_host running on the Quodlibet host
