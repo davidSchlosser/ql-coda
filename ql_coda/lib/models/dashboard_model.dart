@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coda/logger.dart';
 import 'package:logger/logger.dart';
 
-Logger _logger = getLogger('dashboard_model', Level.debug);
+Logger _logger = getLogger('dashboard_model', Level.warning);
 
 enum PlayerState {
   playing,

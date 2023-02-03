@@ -1,14 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:coda/models/dashboard_model.dart';
-import 'package:coda/screens/ui_util.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:coda/logger.dart';
 import 'package:logger/logger.dart';
 
-Logger _logger = getLogger('dashboard_view', Level.debug);
+Logger _logger = getLogger('dashboard_view', Level.warning);
 
 double tickDuration = 1.0;
 int trackLengthInSeconds = 40;
@@ -22,45 +18,110 @@ class PB extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false, home: ProgressBar(length: 0));
+    return const MaterialApp(debugShowCheckedModeBanner: false, home: DashboardApp());
   }
 }
 
-class ProgressBar extends ConsumerStatefulWidget {
-  final double length; // track length
-  final double
-      startAt; // fraction of track length to start the progress display
+class DashboardApp extends StatelessWidget {
+  const DashboardApp({super.key});
 
-  ProgressBar(
-      {required this.length,
-      this.startAt =
-          0}); // tracks can be paused & restarted, or advanced from the control
-
-  @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _ProgressState();
-}
-
-class _ProgressState extends ConsumerState<ProgressBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('My Timer App')),
+      appBar: AppBar(title: const Text('Dashboard Test App')),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TimerBarWidget(),
-            SizedBox(height: 40),
-            ButtonsContainer(),
-          ],
-        ),
+        child: Dashboard(
+            length: trackLengthInSeconds,
+            onPause: (int elapsed) {
+              _logger.w('onPause at $elapsed');
+            },
+            onResume: (int elapsed) {
+              _logger.w('onResume at $elapsed');
+            },
+            onNext: () {
+              _logger.w('onNext');
+            },
+            onPrevious: () {
+              _logger.w('onPrevious');
+            },
+            onDragged: (elapsed) {
+              _logger.w('onDragged to $elapsed');
+            },
+            onRandom: () {
+              _logger.w('onRandom');
+            }),
       ),
     );
   }
 }
 
+class Dashboard extends ConsumerStatefulWidget {
+  final int length; // track length in seconds
+  final Function onPause;
+  final Function onResume;
+  final Function onNext;
+  final Function onPrevious;
+  final Function onDragged;
+  final Function onRandom;
+
+  const Dashboard(
+      {super.key,
+      required this.length,
+      required this.onPause,
+      required this.onResume,
+      required this.onNext,
+      required this.onPrevious,
+      required this.onDragged,
+      required this.onRandom});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _DashboardState();
+}
+
+class _DashboardState extends ConsumerState<Dashboard> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Future.delayed(Duration.zero, () {
+      // start the progres bar as soon as build is fininshed
+      ref.read(progressProvider.notifier).start(widget.length);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        TimerBarWidget(onDragged: widget.onDragged),
+        const SizedBox(height: 40),
+        ButtonsContainer(
+          onPause: widget.onPause,
+          onResume: widget.onResume,
+          onNext: widget.onNext,
+          onPrevious: widget.onPrevious,
+          onRandom: widget.onRandom,
+        ),
+      ],
+    );
+  }
+}
+
 class ButtonsContainer extends ConsumerWidget {
+  final Function onPause;
+  final Function onResume;
+  final Function onNext;
+  final Function onPrevious;
+  final Function onRandom;
+  const ButtonsContainer(
+      {super.key, required this.onPause,
+      required this.onResume,
+      required this.onNext,
+      required this.onPrevious,
+      required this.onRandom});
+
   @override
   Widget build(BuildContext context, ref) {
     return Row(
@@ -68,54 +129,48 @@ class ButtonsContainer extends ConsumerWidget {
       children: [
         // previous track
         FloatingActionButton(
-          onPressed: () {
-
-          },
-          child: Icon(Icons.skip_previous),
+          onPressed: () => onPrevious(),
+          child: const Icon(Icons.skip_previous),
         ),
-        SizedBox(width: 40),
+        const SizedBox(width: 40),
 
         // start
         FloatingActionButton(
           onPressed: () {
             ref.read(progressProvider.notifier).start(trackLengthInSeconds);
           },
-          child: Icon(Icons.play_arrow),
+          child: const Icon(Icons.play_arrow),
         ),
-        SizedBox(width: 20),
+        const SizedBox(width: 20),
 
         // pause/resume
         FloatingActionButton(
           onPressed: () {
             if (ref.read(progressProvider).playerState == PlayerState.playing) {
               ref.read(progressProvider.notifier).pause();
+              onPause(ref.read(progressProvider).elapsedTrackTime);
             } else {
               ref.read(progressProvider.notifier).resume();
+              onResume(ref.read(progressProvider).elapsedTrackTime);
             }
           },
-          child: Icon( ref.watch(progressProvider).playerState == PlayerState.playing
-              ? Icons.pause
-              : Icons.play_arrow
-          ),
+          child: Icon(ref.watch(progressProvider).playerState == PlayerState.playing ? Icons.pause : Icons.play_arrow),
         ),
-        SizedBox(width: 20),
+        const SizedBox(width: 20),
 
-        // restart
+        // random
         FloatingActionButton(
           onPressed: () {
-            ref.read(progressProvider.notifier).resume();
+            onRandom();
           },
-          child: Icon(Icons.autorenew),
+          child: const Icon(Icons.autorenew),
         ),
-        SizedBox(width: 20),
-
+        const SizedBox(width: 20),
 
         // next track
         FloatingActionButton(
-          onPressed: () {
-
-          },
-          child: Icon(Icons.skip_next),
+          onPressed: () => onNext(),
+          child: const Icon(Icons.skip_next),
         ),
       ],
     );
@@ -123,26 +178,26 @@ class ButtonsContainer extends ConsumerWidget {
 }
 
 class TimerBarWidget extends ConsumerWidget {
-  const TimerBarWidget({Key? key}) : super(key: key);
+  final Function onDragged;
+  const TimerBarWidget({required this.onDragged, Key? key}) : super(key: key);
 
   Widget buildSideLabel(text) {
-    return Text(
-        text,
-        style: TextStyle(
+    return Text(text,
+        style: const TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.normal,
-    ));
+        ));
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Progress progress = ref.watch(progressProvider);
-    double _currentSliderValue = progress.elapsedTrackTime.toDouble();
+    double currentSliderValue = progress.elapsedTrackTime.toDouble();
     //print('building TimerTextWidget ${progress.elapsedTrackTime}');
     return Column(
       children: [
         SliderTheme(
-          data: SliderThemeData(
+          data: const SliderThemeData(
             trackHeight: 10,
             thumbShape: RoundSliderThumbShape(enabledThumbRadius: 30),
             overlayShape: RoundSliderOverlayShape(overlayRadius: 60),
@@ -156,10 +211,10 @@ class TimerBarWidget extends ConsumerWidget {
                 buildSideLabel(secondsToTime(progress.elapsedTrackTime)),
                 Expanded(
                   child: Slider(
-                    value: _currentSliderValue,
+                    value: currentSliderValue,
                     max: progress.trackLength.toDouble(),
                     divisions: progress.trackLength == 0 ? 1 : progress.trackLength,
-                    label: _currentSliderValue.round().toString(),
+                    label: currentSliderValue.round().toString(),
                     onChanged: (double value) {
                       _logger.d('slider onChanged: $value');
                       ref.read(progressProvider.notifier).skipTo(value.toInt());
@@ -173,6 +228,7 @@ class TimerBarWidget extends ConsumerWidget {
                       _logger.d('slider onChangeEnd: $value');
                       ref.read(progressProvider.notifier).skipTo(value.toInt());
                       ref.read(progressProvider.notifier).resume();
+                      onDragged(value.toInt());
                     },
                   ),
                 ),
@@ -181,24 +237,6 @@ class TimerBarWidget extends ConsumerWidget {
             ),
           ),
         ),
-        LinearPercentIndicator(
-          width: MediaQuery.of(context).size.width - 150,
-          lineHeight: 30.0,
-          barRadius: Radius.circular(10.0),
-          percent: progress.trackLength == 0
-              ? 0
-              : progress.elapsedTrackTime <= progress.trackLength
-                  ? progress.elapsedTrackTime / progress.trackLength
-                  : 1.0,
-          leading: Text(secondsToTime(progress.elapsedTrackTime)),
-          trailing: Text(
-              '-${secondsToTime(progress.trackLength - progress.elapsedTrackTime)}'),
-          backgroundColor: Colors.grey,
-          progressColor: Colors.blue,
-          alignment: MainAxisAlignment.center,
-        ),
-        /*Text(
-            'state: ${progress.playerState}, elapsed: ${progress.elapsedTrackTime}, remaining ${progress.trackLength - progress.elapsedTrackTime}'),*/
       ],
     );
   }
@@ -213,15 +251,3 @@ String secondsToTime(int seconds) {
   String st = (s < 10) ? '0$s' : '$s';
   return '${h > 0 ? '$h:' : ''}$mt:$st';
 }
-
-/*
-LinearPercentIndicator(
-width: MediaQuery.of(context).size.width - 90,
-lineHeight: 14.0,
-percent: progress <= 1.0 ? progress : 1.0,
-leading: Text(progressToTime(length, progress)),
-trailing: Text('-${progressToTime(length, 1-progress)}'),
-backgroundColor: Colors.grey,
-progressColor: Colors.blue,
-alignment: MainAxisAlignment.center,
-)*/
