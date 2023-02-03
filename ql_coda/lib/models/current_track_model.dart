@@ -109,7 +109,7 @@ class CurrentTrackModel {
           composer = tokens[1];
           break;
 
-        case 'length':
+        case '~#length':
           length = tokens[1];
           break;
 
