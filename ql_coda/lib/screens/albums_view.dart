@@ -1,4 +1,3 @@
-import 'package:coda/models/control_panel_model.dart';
 import 'package:coda/models/albums_model.dart';
 import 'package:coda/screens/common_scaffold.dart';
 import 'package:coda/screens/queries_view.dart';
@@ -11,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 
 import '../models/query_model.dart';
+import '../models/queue_model.dart';
 
 Logger _logger = getLogger('albums_view', Level.warning);
 
