@@ -34,6 +34,9 @@ class Track {
   String get filename {return getTag('~filename');}
   String get grouping { return getTag('grouping'); }
   String get title { return getTag('title'); }
+  int get length {
+    return getTag('~#length') == '' ? 0 : double.parse(getTag('~#length')).toInt();
+  }
 
   @override
   String toString() {
