@@ -62,3 +62,8 @@ void unQueue(String fileName, WidgetRef ref) {
   //ref.read(queuedTracksProvider.notifier).loadQueuedTracks(processedQueue);
   _logger.d('unqueue loaded $processedQueue');
 }
+
+void queueAlbum(String albumDirectoryName) {
+  String quoteEscaped = albumDirectoryName.replaceAll("'", "\'");
+  Communicator().doRemote('enqueuealbum "$quoteEscaped"');
+}
