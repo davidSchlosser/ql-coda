@@ -3,19 +3,43 @@ import 'dart:math';
 
 import 'package:coda/logger.dart';
 import 'package:coda/models/track_model.dart';
-import 'package:coda/streams/current_track_stream.dart';
+import 'package:coda/screens/ui_util.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:logger/logger.dart';
 import 'dart:convert';
 
+import '../communicator.dart';
+
 Logger _logger = getLogger('Current track model', Level.warning);
 
 final nowPlayingTrackModelProvider = StreamProvider<CurrentTrackModel>((ref) {
-  StreamController<CurrentTrackModel> streamController =
-      CurrentTrackStream.currentTrackStreamController;
+  StreamController<CurrentTrackModel> streamController = CurrentTrackStream.currentTrackStreamController;
   return streamController.stream;
 });
+
+class CurrentTrackStream {
+  static StreamController<CurrentTrackModel> currentTrackStreamController =
+      StreamController<CurrentTrackModel>.broadcast();
+
+  CurrentTrackStream() {
+    Communicator().subscribe('quodlibet/now-playing', currentTrackMsgHandler);
+    //_logger.d('CurrentTrackStream constructor');
+  }
+
+  void currentTrackMsgHandler(String message) {
+    //_logger.d('nowPlayingMsgHandler: $message');
+    //if (!message.contains('paused')) {
+    currentTrackStreamController.add(CurrentTrackModel.fromString(message));
+    //};
+  }
+
+  Stream<CurrentTrackModel> currentTrackStream() {
+    // TODO delete - used by old streamProvider
+    //_logger.d('currentTrackStream()');
+    return currentTrackStreamController.stream;
+  }
+}
 
 class CurrentTrackModel {
   Track track = rawTrack({});
@@ -23,7 +47,7 @@ class CurrentTrackModel {
   String style = '';
   String title = '';
   String album = '';
-  List <String> performers = [];
+  List<String> performers = [];
   String composer = '';
   String length = '';
   String artist = '';
@@ -59,6 +83,7 @@ class CurrentTrackModel {
   });
 
   CurrentTrackModel.fromString(String trackMsg) {
+    track = rawTrack({});
     genre = '';
     style = '';
     title = '';
@@ -77,89 +102,92 @@ class CurrentTrackModel {
     file = '';
     labelid = '';
 
-    Map<String, dynamic> rawNowPlaying =
-        (trackMsg.isNotEmpty) ? jsonDecode(trackMsg) : {};
-    track = rawTrack(rawNowPlaying);
+    Map<String, dynamic> rawNowPlaying = (trackMsg.isNotEmpty) ? jsonDecode(trackMsg) : {};
 
-    rawNowPlaying.forEach((key, value) {
-      List<String> tokens = [key, value.toString()];
+    if (rawNowPlaying.containsKey('trackData')) {
+      track = rawTrack(rawNowPlaying['trackData']);
 
-      switch (tokens[0]) {
-        case 'genre':
-          genre = tokens[1];
-          break;
+      rawNowPlaying['trackData'].forEach((key, value) {
+        List<String> tokens = [key, value.toString()];
 
-        case 'style':
-          style = tokens[1];
-          break;
+        switch (tokens[0]) {
+          case 'genre':
+            genre = tokens[1];
+            break;
 
-        case 'title':
-          title = tokens[1];
-          break;
+          case 'style':
+            style = tokens[1];
+            break;
 
-        case 'album':
-          album = tokens[1];
-          break;
+          case 'title':
+            title = tokens[1];
+            break;
 
-        /*case 'performers':
+          case 'album':
+            album = tokens[1];
+            break;
+
+          /*case 'performers':
           performers = tokens[1];
           break;*/
 
-        case 'composer':
-          composer = tokens[1];
-          break;
+          case 'composer':
+            composer = tokens[1];
+            break;
 
-        case '~#length':
-          length = tokens[1];
-          break;
+          case '~#length':
+            length = tokens[1];
+            break;
 
-        case 'artist':
-          artist = tokens[1];
-          break;
+          case 'artist':
+            artist = tokens[1];
+            break;
 
-        case 'grouping':
-          grouping = tokens[1];
-          break;
+          case 'grouping':
+            grouping = tokens[1];
+            break;
 
-        case 'version':
-          version = tokens[1];
-          break;
+          case 'version':
+            version = tokens[1];
+            break;
 
-        case 'disc':
-          disc = tokens[1];
-          break;
+          case 'disc':
+            disc = tokens[1];
+            break;
 
-        case 'discsubtitle':
-          discsubtitle = tokens[1];
-          break;
+          case 'discsubtitle':
+            discsubtitle = tokens[1];
+            break;
 
-        case 'track':
-          trackNumber = tokens[1];
-          break;
+          case 'tracknumber':
+            trackNumber = tokens[1];
+            break;
 
-        case 'mood':
-          mood = tokens[1];
-          break;
+          case 'mood':
+            mood = tokens[1];
+            break;
 
-        case 'date':
-          date = tokens[1];
-          break;
+          case 'date':
+            date = tokens[1];
+            break;
 
-        case 'file':
-          file = tokens[1];
-          break;
+          case 'file':
+            file = tokens[1];
+            break;
 
-        case 'labelid':
-          labelid = tokens[1];
-          break;
+          case 'labelid':
+            labelid = tokens[1];
+            break;
 
-        default:
-          if (tokens[0].startsWith('performer:')) {  // eg ['performer:banjo',Béla Fleck]
-            performers.add( '${tokens[1]} (${tokens[0].substring(10)})');
-          }
-          break;
-      }
-    });
+          default:
+            if (tokens[0].startsWith('performer:')) {
+              // eg ['performer:banjo',Béla Fleck]
+              performers.add('${tokens[1]} (${tokens[0].substring(10)})');
+            }
+            break;
+        }
+      });
+    }
   }
 
   @override
@@ -206,7 +234,15 @@ class CurrentTrackModel {
   }
 
   String summary() {
-    return "${album.isNotEmpty ? album : ''}${disc.isNotEmpty ? '- disc $disc' : ''}${discsubtitle.isNotEmpty ? ', $discsubtitle' : ''}${trackNumber.isNotEmpty ? ' - Track $trackNumber ' : ''}${length.isNotEmpty ? (length) : ''}${date.isEmpty ? '' : ' $date'}${genre.isNotEmpty ? ', $genre' : ''}${style.isNotEmpty ? ', $style' : ''}${mood.isNotEmpty ? ', $mood' : ''}";
+    return (album.isNotEmpty ? album : '') +
+        (disc.isNotEmpty ? '- disc $disc' : '') +
+        (discsubtitle.isNotEmpty ? ', $discsubtitle' : '') +
+        (trackNumber.isNotEmpty ? ' - Track $trackNumber ' : '') +
+        (length.isNotEmpty ? ' ' + (secondsToTime(double.parse(length).toInt())) : '') +
+        (date.isEmpty ? '' : ' $date') +
+        (genre.isNotEmpty ? ', $genre' : '') +
+        (style.isNotEmpty ? ', $style' : '') +
+        (mood.isNotEmpty ? ', $mood' : '');
   }
 
   double lengthInSeconds() {
