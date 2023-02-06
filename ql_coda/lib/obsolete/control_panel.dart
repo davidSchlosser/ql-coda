@@ -1,11 +1,12 @@
 
 import 'package:coda/models/current_track_model.dart';
-import 'package:coda/streams/progress_stream.dart';
+import 'package:coda/obsolete/progress_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 //import 'package:co2/models/player.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:provider/provider.dart';
-import 'package:coda/models/control_panel_model.dart';
+import 'package:provider/provider.dart' as old;
+import 'package:coda/obsolete/control_panel_model.dart';
 import 'package:coda/logger.dart';
 import 'package:logger/logger.dart';
 
@@ -13,25 +14,57 @@ import '../models/volume_model.dart';
 
 Logger _logger = getLogger('ControlPanelModel', Level.debug);
 
-class ControlPanel extends StatefulWidget {
+class ControlPanel extends ConsumerStatefulWidget {
 
   const ControlPanel({super.key});
 
   @override
-  State<ControlPanel> createState() => _ControlPanelState();
+  ConsumerState<ControlPanel> createState() => _ControlPanelState();
 }
 
-class _ControlPanelState extends State<ControlPanel> {
+class _ControlPanelState extends ConsumerState<ControlPanel> {
   final ControlPanelModel controlPanel = ControlPanelModel();
   final VolumeModel volumeModel = VolumeModel(0);
 
+  double progress = 0;
   double vol = 0.0;
+  double length = 0;
 
   @override
   Widget build(BuildContext context) {
-    Provider.debugCheckInvalidValueType = null;
-    double progress = Provider.of<Progress>(context).value;
-    double length = Provider.of<CurrentTrackModel>(context).lengthInSeconds();
+    old.Provider.debugCheckInvalidValueType = null;
+    bool needToResetProgress = false;
+    //double progress = Provider.of<Progress>(context).value;
+
+    final AsyncValue<CurrentTrackModel> asyncCurrentTrack= ref.watch(nowPlayingTrackModelProvider);
+    asyncCurrentTrack.when(
+      loading: () {
+        _logger.d('track loading');
+        needToResetProgress = true;
+      },
+      error: (error, stack) => _logger.d('track error'),
+      data: (CurrentTrackModel p) {
+        length = p.lengthInSeconds();
+        _logger.d('track length: $length');
+
+        final AsyncValue<double> asyncProgress = ref.watch(progressProvider);
+        asyncProgress.when(
+          loading: () => _logger.d('progress loading'),
+          error: (error, stack) => _logger.d('progress error'),
+          data: (double p) {
+            progress = p;
+            _logger.d('progress: $progress');
+
+            if (needToResetProgress) {
+              ProgressStream().resetProgress(
+                  true, progress, (length == 0 ? 0 : 1 / length));
+              needToResetProgress = false;
+            }
+
+          },
+        );
+      },
+    );
 
     return BottomAppBar(
       child: SizedBox(
@@ -81,7 +114,7 @@ class _ControlPanelState extends State<ControlPanel> {
                         onChangeEnd: (double newValue) {
                           controlPanel.adjustVolume(newValue);
                         },
-                        value: Provider.of<Volume>(context).value,
+                        value: old.Provider.of<Volume>(context).value,
                       ),
                   ),
                   const Padding(
@@ -102,7 +135,7 @@ class _ControlPanelState extends State<ControlPanel> {
                       controlPanel.previous();
                     }),
                 IconButton(
-                    icon: Consumer<ControlPanelModel>(builder: (context, controlPanel, child) {
+                    icon: old.Consumer<ControlPanelModel>(builder: (context, controlPanel, child) {
                       return Icon(controlPanel.playing ? Icons.pause : Icons.play_arrow);}),
                     iconSize: 30.0,
                     onPressed: () {
