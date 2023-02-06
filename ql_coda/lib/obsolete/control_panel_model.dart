@@ -168,9 +168,4 @@ class PlayerStatus {
 
 
 
-void applyQueryOnPlayer(String queryText) {
-  _logger.d('apply query $queryText');
-  Communicator().doRemote('query "$queryText"');
-  //PlaylistHandler().refreshPlaylist();
-}
 
