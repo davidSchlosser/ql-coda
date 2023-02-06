@@ -13,6 +13,7 @@ Logger _logger = getLogger('album_tracks_view', Level.debug);
 
 // TODO menu: update selected tracks with tags from clipboard, analyse player credits
 // TODO highlight the current playing track if in view
+// TODO investigate whether refactoring wit generic would enable this code to be reused by AlbumsView
 
 class TracksView extends ConsumerStatefulWidget {
   //const TracksView({Key? key}) : super(key: key);
