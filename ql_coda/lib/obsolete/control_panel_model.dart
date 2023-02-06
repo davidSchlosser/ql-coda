@@ -1,20 +1,24 @@
 import 'dart:convert';
-//import 'dart:math';
-
 import 'package:coda/communicator.dart';
 import 'package:coda/models/volume_model.dart';
-//import 'package:coda/obsolete/playlist_model.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:async';
 import 'package:coda/logger.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 
-import '../streams/progress_stream.dart';
-import 'current_track_model.dart';
+import 'progress_model.dart';
+import '../models/current_track_model.dart';
 
-Logger _logger = getLogger('ControlPanelModel', Level.warning);
+Logger _logger = getLogger('ControlPanelModel', Level.debug);
 
+final controlPanelProvider = StateNotifierProvider<ControlPanelNotifier, ControlPanelModel>((ref) {
+  return ControlPanelNotifier();
+});
 
+class ControlPanelNotifier extends StateNotifier<ControlPanelModel> {
+  ControlPanelNotifier() : super(ControlPanelModel());
+
+}
 
 class ControlPanelModel with ChangeNotifier {
   double volume = 0;
@@ -22,15 +26,15 @@ class ControlPanelModel with ChangeNotifier {
   bool playing = false;
   static bool alreadyPlaying = false;
   static String currentTrackFile = '';
-  static Timer trackTimer = Timer(const Duration(), (){});
+  //static Timer trackTimer = Timer(const Duration(), (){});
   static ProgressStream progressStream = ProgressStream();
   //static PlaylistHandler _playlist = PlaylistHandler();
 
   ControlPanelModel() { // TODO convert ControlPanel to a Provider to avoid re-subscribing multiple times.
-    _logger.d('ControlPanelModel constructor');
-    Communicator().subscribe('quodlibet/now-playing', nowPlayingMsgHandler);
+    _logger.w('ControlPanelModel constructor');
+    /*Communicator().subscribe('quodlibet/now-playing', nowPlayingMsgHandler);
     Communicator().subscribe('mqinvoke/response', responseMsgHandler);
-    Communicator().doRemote('status');
+    Communicator().doRemote('status');*/
     //Communicator().onReady((){ PlaylistHandler().refreshPlaylist();} );
   }
 
@@ -52,15 +56,23 @@ class ControlPanelModel with ChangeNotifier {
         String resp = response['status'];
         PlayerStatus playerStatus = PlayerStatus(resp.split(' '));
 
+        /*progress = playerStatus.progress;
+        _logger.d('status _progress: $progress');
+        progressStream.addEvent(progress);
+        */
+
+        //CurrentTrackModel track = ref.watch(nowPlayingTrackModelProvider);
+        CurrentTrackModel track = CurrentTrackModel.fromString(message);
+
+        _logger.d('responseHandler track ${track.trackNumber}, length ${track.length}');
+
         playing = playerStatus.playstate == 'playing';
         if (playing ^ alreadyPlaying) {
           alreadyPlaying = playing;
           notifyListeners();
         }
-        progress = playerStatus.progress;
-        _logger.d('status _progress: $progress');
-        progressStream.addEvent(progress);
-
+        double seconds = track.lengthInSeconds();
+        progressStream.resetProgress(playing, playerStatus.progress, (seconds == 0 ? 0 : 1/seconds));
         VolumeModel(0).addEvent(playerStatus.volume);
       }
     } on FormatException {
@@ -86,7 +98,8 @@ class ControlPanelModel with ChangeNotifier {
       // let the Playlist know
       //PlaylistHandler().index(currentTrackFile);
 
-      // reset the timer for the progress display
+      progressStream.resetProgress(playing, 0, track.lengthInSeconds());
+      /*// reset the timer for the progress display
       double length = track.lengthInSeconds();
       //print('length: $_length');
       double progress = 0.0;
@@ -104,7 +117,7 @@ class ControlPanelModel with ChangeNotifier {
             progressStream.addEvent(progress);
           }
         }
-      );
+      );*/
     }
   }
 
@@ -161,7 +174,3 @@ void applyQueryOnPlayer(String queryText) {
   //PlaylistHandler().refreshPlaylist();
 }
 
-void queueAlbum(String albumDirectoryName) {
-  String quoteEscaped = albumDirectoryName.replaceAll("'", "\'");
-  Communicator().doRemote('enqueuealbum "$quoteEscaped"');
-}
