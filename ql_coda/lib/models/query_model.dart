@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:coda/logger.dart';
 
+import '../communicator.dart';
+
 Logger _logger = getLogger('query_model', Level.debug);
 
 const String defaultQuery = '!mood=/[a-z]/';
@@ -91,4 +93,10 @@ class SavedQueriesModel extends ChangeNotifier {
         mode: FileMode.append, flush: true);
   }
 
+}
+
+void applyQueryOnPlayer(String queryText) {
+  _logger.d('apply query $queryText');
+  Communicator().doRemote('query "$queryText"');
+  //PlaylistHandler().refreshPlaylist();
 }

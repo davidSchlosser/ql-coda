@@ -10,7 +10,6 @@ import 'package:logger/logger.dart';
 import 'package:coda/logger.dart';
 import '../models/albums_model.dart';
 import '../models/clipboard_model.dart';
-import '../models/control_panel_model.dart';
 import '../models/tags_model.dart';
 import 'assemble_route.dart';
 import 'clipboard_tags_view.dart';
