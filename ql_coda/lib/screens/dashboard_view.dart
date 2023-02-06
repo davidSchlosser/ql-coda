@@ -1,3 +1,4 @@
+import 'package:coda/screens/ui_util.dart';
 import 'package:flutter/material.dart';
 import 'package:coda/models/dashboard_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,14 +80,15 @@ class Dashboard extends ConsumerStatefulWidget {
 }
 
 class _DashboardState extends ConsumerState<Dashboard> {
-
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+
     Future.delayed(Duration.zero, () {
-      // start the progres bar as soon as build is fininshed
+      // start the progress bar as soon as build is fininshed
       ref.read(progressProvider.notifier).start(widget.length);
+      // player status let's us know if it's playing/paused, progress proportion
+      ref.read(progressProvider.notifier).monitorPlayerStatus();
     });
   }
 
@@ -96,7 +98,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         TimerBarWidget(onDragged: widget.onDragged),
-        const SizedBox(height: 40),
+        const SizedBox(height: 0),
         ButtonsContainer(
           onPause: widget.onPause,
           onResume: widget.onResume,
@@ -104,6 +106,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
           onPrevious: widget.onPrevious,
           onRandom: widget.onRandom,
         ),
+        const SizedBox(height: 20),
       ],
     );
   }
@@ -116,7 +119,8 @@ class ButtonsContainer extends ConsumerWidget {
   final Function onPrevious;
   final Function onRandom;
   const ButtonsContainer(
-      {super.key, required this.onPause,
+      {super.key,
+      required this.onPause,
       required this.onResume,
       required this.onNext,
       required this.onPrevious,
@@ -128,23 +132,26 @@ class ButtonsContainer extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // previous track
-        FloatingActionButton(
+        IconButton(
+          iconSize: 50,
           onPressed: () => onPrevious(),
-          child: const Icon(Icons.skip_previous),
+          icon: const Icon(Icons.skip_previous),
         ),
-        const SizedBox(width: 40),
+        const SizedBox(width: 60),
 
-        // start
-        FloatingActionButton(
+        /*// start
+        IconButton(
+          iconSize: 50,
           onPressed: () {
             ref.read(progressProvider.notifier).start(trackLengthInSeconds);
           },
-          child: const Icon(Icons.play_arrow),
+          icon: const Icon(Icons.play_arrow),
         ),
-        const SizedBox(width: 20),
+        const SizedBox(width: 20),*/
 
         // pause/resume
-        FloatingActionButton(
+        IconButton(
+          iconSize: 50,
           onPressed: () {
             if (ref.read(progressProvider).playerState == PlayerState.playing) {
               ref.read(progressProvider.notifier).pause();
@@ -154,23 +161,25 @@ class ButtonsContainer extends ConsumerWidget {
               onResume(ref.read(progressProvider).elapsedTrackTime);
             }
           },
-          child: Icon(ref.watch(progressProvider).playerState == PlayerState.playing ? Icons.pause : Icons.play_arrow),
+          icon: Icon(ref.watch(progressProvider).playerState == PlayerState.playing ? Icons.pause : Icons.play_arrow),
         ),
-        const SizedBox(width: 20),
+        const SizedBox(width: 60),
 
         // random
-        FloatingActionButton(
+        IconButton(
+          iconSize: 50,
           onPressed: () {
             onRandom();
           },
-          child: const Icon(Icons.autorenew),
+          icon: const Icon(Icons.autorenew),
         ),
-        const SizedBox(width: 20),
+        const SizedBox(width: 60),
 
         // next track
-        FloatingActionButton(
+        IconButton(
+          iconSize: 50,
           onPressed: () => onNext(),
-          child: const Icon(Icons.skip_next),
+          icon: const Icon(Icons.skip_next),
         ),
       ],
     );
@@ -214,7 +223,7 @@ class TimerBarWidget extends ConsumerWidget {
                     value: currentSliderValue,
                     max: progress.trackLength.toDouble(),
                     divisions: progress.trackLength == 0 ? 1 : progress.trackLength,
-                    label: currentSliderValue.round().toString(),
+                    label: secondsToTime(currentSliderValue.toInt()), // currentSliderValue.round().toString(),
                     onChanged: (double value) {
                       _logger.d('slider onChanged: $value');
                       ref.read(progressProvider.notifier).skipTo(value.toInt());
@@ -240,14 +249,4 @@ class TimerBarWidget extends ConsumerWidget {
       ],
     );
   }
-}
-
-String secondsToTime(int seconds) {
-  Duration d = Duration(seconds: seconds);
-  int h = d.inHours;
-  int m = d.inMinutes.remainder(60);
-  int s = d.inSeconds.remainder(60);
-  String mt = (h > 0) & (m < 10) ? '0$m' : '$m';
-  String st = (s < 10) ? '0$s' : '$s';
-  return '${h > 0 ? '$h:' : ''}$mt:$st';
 }
