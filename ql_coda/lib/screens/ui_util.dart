@@ -35,3 +35,13 @@ class NilWidget extends StatelessWidget {
     return const SizedBox.shrink();
   }
 }
+
+String secondsToTime(int seconds) {
+  Duration d = Duration(seconds: seconds);
+  int h = d.inHours;
+  int m = d.inMinutes.remainder(60);
+  int s = d.inSeconds.remainder(60);
+  String mt = (h > 0) & (m < 10) ? '0$m' : '$m';
+  String st = (s < 10) ? '0$s' : '$s';
+  return '${h > 0 ? '$h:' : ''}$mt:$st';
+}
