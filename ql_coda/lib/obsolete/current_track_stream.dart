@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 
 Logger _logger = getLogger('main', Level.debug);
 
+/*
 class CurrentTrackStream {
   static StreamController<CurrentTrackModel> currentTrackStreamController = StreamController.broadcast();
   //static StreamController<CurrentTrackModel> currentTrackStreamController = StreamController<CurrentTrackModel>();
@@ -22,10 +23,11 @@ class CurrentTrackStream {
     //};
   }
 
-  Stream<CurrentTrackModel> currentTrackStream() {
+  Stream<CurrentTrackModel> currentTrackStream() { // TODO delete this?
     //_logger.d('currentTrackStream()');
     return currentTrackStreamController.stream;
   }
 
 }
+*/
 
