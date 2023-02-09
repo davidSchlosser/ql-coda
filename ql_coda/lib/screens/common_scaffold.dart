@@ -3,7 +3,7 @@ import 'package:coda/screens/queue_view.dart';
 import 'package:coda/screens/ui_util.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:coda/screens/control_panel.dart';
+//import 'package:coda/screens/control_panel.dart';
 import 'package:coda/screens/current_track.dart';
 import 'package:coda/screens/playlist_view.dart';
 import 'package:coda/screens/cache_tags.dart';
@@ -98,7 +98,7 @@ class CommonScaffold extends StatelessWidget {
         tooltip: 'Playlist',
         onPressed: () { context.go('/playlist'); },
       ),
-      (popupMenu != null) ? popupMenu! : NilWidget(),
+      (popupMenu != null) ? popupMenu! : const NilWidget(),
     ];
     //if (popupMenu != null) { actions.add(popupMenu!); };
 
@@ -113,7 +113,7 @@ class CommonScaffold extends StatelessWidget {
             actions: actions),
         body: child,
         floatingActionButton: floatingActionButton,
-        bottomNavigationBar: const ControlPanel(),
+        //bottomNavigationBar: const ControlPanel(),
         drawer: Drawer(
           child: ListView(
             children: <Widget>[
