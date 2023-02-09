@@ -5,58 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coda/logger.dart';
 import 'package:logger/logger.dart';
 
+import '../models/player_model.dart';
+
 Logger _logger = getLogger('dashboard_view', Level.warning);
 
 double tickDuration = 1.0;
-int trackLengthInSeconds = 40;
 
-void main() {
-  runApp(const ProviderScope(child: PB()));
-}
-
-class PB extends StatelessWidget {
-  const PB({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(debugShowCheckedModeBanner: false, home: DashboardApp());
-  }
-}
-
-class DashboardApp extends StatelessWidget {
-  const DashboardApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard Test App')),
-      body: Center(
-        child: Dashboard(
-            length: trackLengthInSeconds,
-            onPause: (int elapsed) {
-              _logger.w('onPause at $elapsed');
-            },
-            onResume: (int elapsed) {
-              _logger.w('onResume at $elapsed');
-            },
-            onNext: () {
-              _logger.w('onNext');
-            },
-            onPrevious: () {
-              _logger.w('onPrevious');
-            },
-            onDragged: (elapsed) {
-              _logger.w('onDragged to $elapsed');
-            },
-            onRandom: () {
-              _logger.w('onRandom');
-            }),
-      ),
-    );
-  }
-}
-
-class Dashboard extends ConsumerStatefulWidget {
+class DashboardWidget extends ConsumerStatefulWidget {
   final int length; // track length in seconds
   final Function onPause;
   final Function onResume;
@@ -65,7 +20,7 @@ class Dashboard extends ConsumerStatefulWidget {
   final Function onDragged;
   final Function onRandom;
 
-  const Dashboard(
+  const DashboardWidget(
       {super.key,
       required this.length,
       required this.onPause,
@@ -79,16 +34,18 @@ class Dashboard extends ConsumerStatefulWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _DashboardState();
 }
 
-class _DashboardState extends ConsumerState<Dashboard> {
+class _DashboardState extends ConsumerState<DashboardWidget> {
   @override
   void initState() {
     super.initState();
 
     Future.delayed(Duration.zero, () {
+      _logger.d('_DashboardState initState');
+
       // start the progress bar as soon as build is fininshed
-      ref.read(progressProvider.notifier).start(widget.length);
+
       // player status let's us know if it's playing/paused, progress proportion
-      ref.read(progressProvider.notifier).monitorPlayerStatus();
+      Dashboard.monitorPlayerStatus(widget.length);
     });
   }
 
@@ -139,29 +96,19 @@ class ButtonsContainer extends ConsumerWidget {
         ),
         const SizedBox(width: 60),
 
-        /*// start
-        IconButton(
-          iconSize: 50,
-          onPressed: () {
-            ref.read(progressProvider.notifier).start(trackLengthInSeconds);
-          },
-          icon: const Icon(Icons.play_arrow),
-        ),
-        const SizedBox(width: 20),*/
-
         // pause/resume
         IconButton(
           iconSize: 50,
           onPressed: () {
-            if (ref.read(progressProvider).playerState == PlayerState.playing) {
-              ref.read(progressProvider.notifier).pause();
-              onPause(ref.read(progressProvider).elapsedTrackTime);
+            if (ref.read(playerStateProvider).value == PlayerState.playing) {
+              _logger.d('pause/resume - pause');
+              onPause();
             } else {
-              ref.read(progressProvider.notifier).resume();
-              onResume(ref.read(progressProvider).elapsedTrackTime);
+              _logger.d('pause/resume - resume');
+              onResume();
             }
           },
-          icon: Icon(ref.watch(progressProvider).playerState == PlayerState.playing ? Icons.pause : Icons.play_arrow),
+          icon: Icon(ref.watch(playerStateProvider).value == PlayerState.playing ? Icons.pause : Icons.play_arrow),
         ),
         const SizedBox(width: 60),
 
@@ -178,7 +125,10 @@ class ButtonsContainer extends ConsumerWidget {
         // next track
         IconButton(
           iconSize: 50,
-          onPressed: () => onNext(),
+          onPressed: () {
+            Dashboard.resetProgress(0,0);
+            onNext();
+          },
           icon: const Icon(Icons.skip_next),
         ),
       ],
@@ -200,15 +150,20 @@ class TimerBarWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Progress progress = ref.watch(progressProvider);
-    double currentSliderValue = progress.elapsedTrackTime.toDouble();
-    //print('building TimerTextWidget ${progress.elapsedTrackTime}');
+
+    double elapsedProportion = ref.watch(elapsedProportionProvider).value ?? 0;
+    _logger.d('elapsedProportion $elapsedProportion');
+    int trackLength = ref.watch(nowPlayingTrackModelProvider).value?.track.length ?? 0;
+    double currentSliderValue = trackLength * elapsedProportion;
+
+    //_logger.d('currentSliderValue $currentSliderValue');
+
     return Column(
       children: [
         SliderTheme(
           data: const SliderThemeData(
-            trackHeight: 10,
-            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 30),
+            trackHeight: 3,
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
             overlayShape: RoundSliderOverlayShape(overlayRadius: 60),
             activeTickMarkColor: Colors.transparent,
             inactiveTickMarkColor: Colors.transparent,
@@ -217,31 +172,33 @@ class TimerBarWidget extends ConsumerWidget {
             width: MediaQuery.of(context).size.width - 80,
             child: Row(
               children: [
-                buildSideLabel(secondsToTime(progress.elapsedTrackTime)),
+                buildSideLabel(secondsToTime(currentSliderValue.toInt())),
                 Expanded(
                   child: Slider(
                     value: currentSliderValue,
-                    max: progress.trackLength.toDouble(),
-                    divisions: progress.trackLength == 0 ? 1 : progress.trackLength,
+                    max: trackLength.toDouble(),
+                    divisions: trackLength == 0 ? 1 : trackLength,
                     label: secondsToTime(currentSliderValue.toInt()), // currentSliderValue.round().toString(),
+
                     onChanged: (double value) {
                       _logger.d('slider onChanged: $value');
-                      ref.read(progressProvider.notifier).skipTo(value.toInt());
+                      Dashboard.forceProgress(value.toInt(), trackLength);
                     },
+
                     onChangeStart: (double value) {
                       _logger.d('slider onChangeStart: $value');
-                      ref.read(progressProvider.notifier).pause();
-                      //ref.read(progressProvider.notifier).skipTo(value.toInt());
+                      //Dashboard.pause();
                     },
+
                     onChangeEnd: (double value) {
                       _logger.d('slider onChangeEnd: $value');
-                      ref.read(progressProvider.notifier).skipTo(value.toInt());
-                      ref.read(progressProvider.notifier).resume();
+                       //Dashboard.skipTo(value.toInt(), trackLength);
                       onDragged(value.toInt());
                     },
                   ),
                 ),
-                buildSideLabel('-${secondsToTime(progress.trackLength - progress.elapsedTrackTime)}'),
+                //buildSideLabel('-${secondsToTime( (trackLength * (1 - currentSliderValue)).toInt() )}'),
+                buildSideLabel('-${secondsToTime( trackLength - currentSliderValue.toInt()) }'),
               ],
             ),
           ),

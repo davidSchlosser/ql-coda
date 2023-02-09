@@ -11,9 +11,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coda/models/track_model.dart';
 
 import '../communicator.dart';
+import '../models/player_model.dart';
 import 'dashboard_view.dart';
 
-Logger _logger = getLogger('CurrentTrack', Level.debug);
+Logger _logger = getLogger('CurrentTrack', Level.warning);
 
 class CurrentTrack extends ConsumerWidget {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
@@ -113,32 +114,37 @@ class CurrentTrack extends ConsumerWidget {
                           ),
                         ]),
                       ),
-                      Dashboard(
+                      DashboardWidget(
                         length: track == null ? 0 : track!.length,
                         onNext: () {
-                          _logger.d('next');
+                          _logger.w('next');
                           Communicator().doRemote('next');
+                          Player.refresh();
                         },
                         onPrevious: () {
                           _logger.d('previous');
                           Communicator().doRemote('previous');
+                          Player.refresh();
                         },
-                        onPause: (_) {
-                          _logger.d('play');
-                          Communicator().doRemote('play');
+                        onPause: () {
+                          _logger.d('pause');
+                          Communicator().doRemote('pause');
+                          Player.refresh();
                         },
                         onDragged: (elapsedSeconds) {
-                          _logger.d('dragged');
+                          _logger.d('dragged to ${secondsToTime(elapsedSeconds)}');
                           Communicator().doRemote('seek ${secondsToTime(elapsedSeconds)}');
+                          Player.refresh();
                         },
                         onRandom: () {
                           _logger.d('random');
                           Communicator().doRemote('skipalbum');
                           Communicator().doRemote('next');
                         },
-                        onResume: (_) {
+                        onResume: () {
                           _logger.d('resume');
                           Communicator().doRemote('play');
+                          Player.refresh();
                         },
                       ),
                     ],
@@ -153,17 +159,3 @@ List<Widget> withPerformers(performers) {
   performers.forEach((p) => wp.add(Text(p, style: TextStyle(fontSize: 18.0))));
   return wp;
 }
-/*
-Dashboard(
-length: track == null ? 0 : track!.length,
-onNext: () {Communicator().doRemote('next');},
-onPrevious: () {Communicator().doRemote('previous');},
-onPause: (_) {Communicator().doRemote('play');},
-onDragged: (elapsedSeconds){Communicator().doRemote('seek ${secondsToTime(elapsedSeconds)}');},
-onRandom: () {
-Communicator().doRemote('skipalbum');
-Communicator().doRemote('next');
-},
-onResume: () {Communicator().doRemote('play');},
-
-),*/

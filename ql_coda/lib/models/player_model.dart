@@ -1,9 +1,14 @@
-
+//
+// player_model.dart
+// Receives communications from Quodlibet regarding its state (playing/paused, volume, elapsed proportion) and current playing track.
+// Makes status and current track data available to UI via streams
+//
 
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:coda/models/volume_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../communicator.dart';
@@ -14,18 +19,143 @@ import 'current_track_model.dart';
 import 'package:coda/logger.dart';
 import 'package:logger/logger.dart';
 
-Logger _logger = getLogger('player_model', Level.debug);
+Logger _logger = getLogger('player_model', Level.warning);
 
-// example status: 'paused AlbumList 0.749 inorder off 0.000'
-class PlayerStatus {
+enum PlayerState {
+  playing,
+  paused,
+  stopped,
+  unresponsive, // Quodlibet or ql_coda_host is not running
+}
+
+class Player {
+  //bool alreadyPlaying = false;
+  //static StreamController<QuodlibetReportedStatus> quodlibetReportedStatusStreamController = StreamController<QuodlibetReportedStatus>.broadcast();
+  static StreamController<CurrentTrackModel> currentTrackStreamController = StreamController<CurrentTrackModel>.broadcast();
+  static StreamController<PlayerState> playerStateController = StreamController<PlayerState>.broadcast();
+  static StreamController<double> volumeStreamController = StreamController<double>.broadcast();
+  static StreamController<double> elapsedProportionStreamController = StreamController<double>.broadcast();
+  
+  Player(){
+    Communicator().subscribe('mqinvoke/response', _quodlibetReportedStatusMsgHandler);
+    Communicator().subscribe('quodlibet/now-playing', _quodlibetEventMsgHandler);
+
+    CoverStream();
+    refresh();
+  }
+
+  static void refresh() {
+    _logger.d('refresh');
+    Communicator().doRemote('nowplaying');  // provides player state, track tag details
+    Communicator().doRemote('status');      // provides player state, progress proportion, volume
+  }
+
+  void _quodlibetEventMsgHandler(String message) {
+    PlayerState? playerState;
+    Map<String, dynamic> rawPlayer = (message.isNotEmpty) ? jsonDecode(message) : {};
+
+    if (rawPlayer.containsKey('player')) {
+
+      String reportedState = rawPlayer['player'].toString();
+
+      switch (reportedState) {
+        case 'playing':
+            playerState = PlayerState.playing; break;
+        case 'paused':
+          playerState = PlayerState.paused; break;
+        case 'stopped':
+          playerState = PlayerState.stopped; break;
+        default:
+          playerState = PlayerState.unresponsive; break;
+      }
+      playerStateController.add(playerState);
+    }
+
+    CurrentTrackModel? track;
+    if (rawPlayer.containsKey('trackData')) {
+      track = CurrentTrackModel.fromString(message);
+      currentTrackStreamController.add(track);
+    }
+
+    _logger.d('quodlibetEventMsgHandler: $playerState, $track');
+  }
+
+  void _quodlibetReportedStatusMsgHandler(String message) {
+    PlayerState? playerState;
+
+    // example status: 'paused AlbumList 0.749 inorder off 0.000'
+
+    _logger.d('_quodlibetReportedStatusMsgHandler: $message');
+    if (message != '') {
+      try {
+        Map response = const JsonDecoder().convert(message);
+
+        if (response.containsKey('status')) {
+          //_logger.d('is status');
+
+          QuodlibetReportedStatus quodlibetReportedStatus = QuodlibetReportedStatus.fromString(response['status']);
+          String reportedState = response['status'].split(' ')[0];
+
+          switch (reportedState) {
+            case 'playing':
+              playerState = PlayerState.playing;
+              break;
+            case 'paused':
+              playerState = PlayerState.paused;
+              break;
+            case 'stopped':
+              playerState = PlayerState.stopped;
+              break;
+            default:
+              playerState = PlayerState.unresponsive;
+              break;
+          }
+
+          playerStateController.add(playerState);
+          volumeStreamController.add(quodlibetReportedStatus.volume!);
+          elapsedProportionStreamController.add(quodlibetReportedStatus.elapsedProportion!);
+
+          //eliminate following?
+          VolumeModel(0).addEvent(quodlibetReportedStatus.volume);
+
+          _logger.d('_quodlibetReportedStatusMsgHandler $quodlibetReportedStatus');
+        }
+      } on FormatException {
+        _logger.d('FormatException');
+      }
+    }
+
+  }
+  
+}
+
+final playerStateProvider = StreamProvider<PlayerState>((ref) {
+  return Player.playerStateController.stream;
+});
+
+final volumeProvider = StreamProvider<double>((ref) {
+  return Player.volumeStreamController.stream;
+});
+
+final nowPlayingTrackModelProvider = StreamProvider<CurrentTrackModel>((ref) {
+  return Player.currentTrackStreamController.stream;
+});
+
+final elapsedProportionProvider = StreamProvider<double>((ref) {
+  return Player.elapsedProportionStreamController.stream;
+});
+
+
+// example status reported by Quodlibet: 'paused AlbumList 0.749 inorder off 0.000'
+class QuodlibetReportedStatus {
   bool? isPlaying;
   double? volume;
   String? view;
   double? elapsedProportion;
 
-  PlayerStatus(this.isPlaying, [this.volume, this.view, this.elapsedProportion]);
+  QuodlibetReportedStatus(this.isPlaying, [this.volume, this.view, this.elapsedProportion]);
 
-  PlayerStatus.fromString(String statusString){
+  QuodlibetReportedStatus.fromString(String statusString){
     List <String> playerStatus = statusString.split(' ');
     isPlaying = playerStatus[0] == 'playing';
     view = playerStatus[1];
@@ -33,63 +163,9 @@ class PlayerStatus {
     elapsedProportion = double.parse(playerStatus[5]);
   }
 
+  @override
+  String toString() {
+    return 'QuodlibetReportedStatus $isPlaying, $volume, $view, $elapsedProportion';
+  }
+
 }
-
-class Player {
-  bool alreadyPlaying = false;
-  static StreamController<PlayerStatus> playerStatusStreamController = StreamController<PlayerStatus>.broadcast();
-  
-  Player(){
-    Communicator().subscribe('mqinvoke/response', _statusMsgHandler);
-    Communicator().subscribe('quodlibet/now-playing', _playerMsgHandler);
-    CurrentTrackStream();
-    CoverStream();
-    refresh();
-  }
-
-  void refresh() {
-    Communicator().doRemote('status');
-    Communicator().doRemote('nowplaying');
-  }
-
-  void _playerMsgHandler(String message) {
-    Map<String, dynamic> rawPlayer = (message.isNotEmpty) ? jsonDecode(message) : {};
-
-    if (rawPlayer.containsKey('player')) {
-      PlayerStatus playerStatus = PlayerStatus(rawPlayer['player'].toString() == 'playing');
-      playerStatusStreamController.add(playerStatus);  // let listeners know, eg Dashboard
-    }
-  }
-
-  void _statusMsgHandler(String message) {
-
-    _logger.d('message: $message');
-    try {
-      Map response = const JsonDecoder().convert(message);
-
-      if (response.containsKey('status')) {
-        _logger.d('is status');
-
-        // example status: 'paused AlbumList 0.749 inorder off 0.000'
-        PlayerStatus playerStatus = PlayerStatus.fromString(response['status']);
-        playerStatusStreamController.add(playerStatus);  // let listeners know, eg Dashboard
-
-        VolumeModel(0).addEvent(playerStatus.volume);
-      }
-    } on FormatException {
-      _logger.d('FormatException');
-    }
-
-  }
-  
-}
-
-class PlayerStatusStream {
-  static StreamController<PlayerStatus> playerStatusStreamController = StreamController<PlayerStatus>.broadcast();
-
-  Stream<PlayerStatus> playerStatusStream() => playerStatusStreamController.stream;
-}
-
-
-
-

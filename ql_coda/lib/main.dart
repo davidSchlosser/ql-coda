@@ -2,7 +2,7 @@ import 'package:coda/obsolete/saved_filters_bloc.dart';
 import 'package:coda/communicator.dart';
 import 'package:coda/logger.dart';
 import 'package:coda/models/cover_model.dart';
-import 'package:coda/models/volume_model.dart';
+//import 'package:coda/models/volume_model.dart';
 import 'package:coda/models/query_model.dart';
 import 'package:coda/repositories/repositories.dart';
 import 'package:coda/routing,dart.dart';
@@ -15,7 +15,7 @@ import 'package:logger/logger.dart';
 import 'models/player_model.dart';
 
 
-Logger _logger = getLogger('main', Level.debug);
+Logger _logger = getLogger('main', Level.warning);
 
 void main() {
   runApp( const ProviderScope(child: CodaRP()) );
@@ -48,27 +48,24 @@ class Coda extends StatelessWidget with WidgetsBindingObserver {
   Coda({super.key}){
     WidgetsFlutterBinding.ensureInitialized();
     WidgetsBinding.instance.addObserver(this);
+    Player();
   }
 
-  final Player _player = Player();
+  // final Player _player = Player();
 
   @override
   Widget build(BuildContext context) {
-    _logger.w('build');
+    _logger.d('build');
     return old.MultiProvider(
       providers: [
-        /*old.StreamProvider<CurrentTrackModel>( // TODO migrate to RiverPod
-          initialData: CurrentTrackModel(),
-          create: (_) => CurrentTrackStream.currentTrackStreamController.stream
-        ),*/
         old.StreamProvider<CoverModel>( // TODO migrate to RiverPod
           initialData: CoverModel(),
           create: (_) => CoverStream.coverStreamController.stream
         ),
-        old.StreamProvider<Volume>( // TODO migrate to RiverPod
+        /*old.StreamProvider<Volume>( // TODO migrate to RiverPod
           initialData: Volume(0),
           create: (_) => VolumeModel.volumeStreamController.stream
-        ),
+        ),*/
         old.ChangeNotifierProvider(create: (context) => QueryModel()),  // TODO migrate to RiverPod
         old.ChangeNotifierProvider(create: (context) => SavedQueriesModel()), // TODO migrate to RiverPod
       ],
@@ -87,7 +84,7 @@ class Coda extends StatelessWidget with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _logger.d('$state');
     if (state == AppLifecycleState.resumed) {
-      _player.refresh();
+      Player.refresh();
     }
   }
 }

@@ -1,45 +1,13 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:coda/logger.dart';
 import 'package:coda/models/track_model.dart';
 import 'package:coda/screens/ui_util.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:logger/logger.dart';
 import 'dart:convert';
 
-import '../communicator.dart';
-
 Logger _logger = getLogger('Current track model', Level.warning);
-
-final nowPlayingTrackModelProvider = StreamProvider<CurrentTrackModel>((ref) {
-  StreamController<CurrentTrackModel> streamController = CurrentTrackStream.currentTrackStreamController;
-  return streamController.stream;
-});
-
-class CurrentTrackStream {
-  static StreamController<CurrentTrackModel> currentTrackStreamController =
-      StreamController<CurrentTrackModel>.broadcast();
-
-  CurrentTrackStream() {
-    Communicator().subscribe('quodlibet/now-playing', currentTrackMsgHandler);
-    //_logger.d('CurrentTrackStream constructor');
-  }
-
-  void currentTrackMsgHandler(String message) {
-    //_logger.d('nowPlayingMsgHandler: $message');
-    //if (!message.contains('paused')) {
-    currentTrackStreamController.add(CurrentTrackModel.fromString(message));
-    //};
-  }
-
-  Stream<CurrentTrackModel> currentTrackStream() {
-    // TODO delete - used by old streamProvider
-    //_logger.d('currentTrackStream()');
-    return currentTrackStreamController.stream;
-  }
-}
 
 class CurrentTrackModel {
   Track track = rawTrack({});
