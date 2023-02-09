@@ -9,10 +9,8 @@ import 'dart:convert';
 
 import 'package:coda/models/volume_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../communicator.dart';
-import '../streams/cover_stream.dart';
+import 'cover_model.dart';
 import 'current_track_model.dart';
 
 

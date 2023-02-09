@@ -1,12 +1,12 @@
 import 'package:coda/obsolete/saved_filters_bloc.dart';
 import 'package:coda/communicator.dart';
 import 'package:coda/logger.dart';
-import 'package:coda/models/cover_model.dart';
+//import 'package:coda/models/cover_model.dart';
 //import 'package:coda/models/volume_model.dart';
 import 'package:coda/models/query_model.dart';
 import 'package:coda/repositories/repositories.dart';
 import 'package:coda/routing,dart.dart';
-import 'package:coda/streams/cover_stream.dart';
+//import 'package:coda/streams/cover_stream.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as old;
@@ -58,10 +58,6 @@ class Coda extends StatelessWidget with WidgetsBindingObserver {
     _logger.d('build');
     return old.MultiProvider(
       providers: [
-        old.StreamProvider<CoverModel>( // TODO migrate to RiverPod
-          initialData: CoverModel(),
-          create: (_) => CoverStream.coverStreamController.stream
-        ),
         /*old.StreamProvider<Volume>( // TODO migrate to RiverPod
           initialData: Volume(0),
           create: (_) => VolumeModel.volumeStreamController.stream

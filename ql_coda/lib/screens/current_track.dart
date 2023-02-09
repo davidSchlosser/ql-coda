@@ -6,7 +6,6 @@ import 'package:coda/screens/ui_util.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart' as old;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coda/models/track_model.dart';
 
@@ -69,16 +68,20 @@ class CurrentTrack extends ConsumerWidget {
                         child: ListView(children: <Widget>[
                           // cover image
                           Padding(
-                            padding: const EdgeInsets.only(top: 10.0),
-                            child: old.Consumer<CoverModel>(builder: (context, coverValue, child) {
-                              return SizedBox(
-                                height: 400.0,
-                                child: (coverValue.cover().isEmpty
+                              padding: const EdgeInsets.only(top: 10.0),
+                              child: /*old.Consumer<CoverModel>(builder: (context, coverValue, child) {
+                              return*/
+                                  Builder(builder: (context) {
+                                CoverModel? coverValue = ref.watch(coverProvider).value;
+                                return (coverValue == null)
                                     ? Center(child: Text('cover is unavailable'))
-                                    : Image.memory(coverValue.cover(), fit: BoxFit.contain)),
-                              );
-                            }),
-                          ),
+                                    : SizedBox(
+                                        height: 400.0,
+                                        child: (coverValue.cover().isEmpty
+                                            ? Center(child: Text('cover is unavailable'))
+                                            : Image.memory(coverValue.cover(), fit: BoxFit.contain)),
+                                      );
+                              })),
                           // artist~composer~title header
                           Padding(
                             padding: const EdgeInsets.only(top: 24.0, bottom: 5.0, left: 24.0, right: 24.0),
