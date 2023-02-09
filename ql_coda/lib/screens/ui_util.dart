@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import 'package:coda/logger.dart';
+
+Logger _logger = getLogger('ui_til', Level.warning);
+
 
 Widget dismissBackground(alignment) {
   return Container(
@@ -37,6 +42,9 @@ class NilWidget extends StatelessWidget {
 }
 
 String secondsToTime(int seconds) {
+
+  _logger.d('secondsToTime $seconds');
+
   Duration d = Duration(seconds: seconds);
   int h = d.inHours;
   int m = d.inMinutes.remainder(60);
