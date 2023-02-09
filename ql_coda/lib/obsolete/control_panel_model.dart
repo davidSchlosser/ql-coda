@@ -32,10 +32,6 @@ class ControlPanelModel with ChangeNotifier {
 
   ControlPanelModel() { // TODO convert ControlPanel to a Provider to avoid re-subscribing multiple times.
     _logger.w('ControlPanelModel constructor');
-    /*Communicator().subscribe('quodlibet/now-playing', nowPlayingMsgHandler);
-    Communicator().subscribe('mqinvoke/response', responseMsgHandler);
-    Communicator().doRemote('status');*/
-    //Communicator().onReady((){ PlaylistHandler().refreshPlaylist();} );
   }
 
   void responseMsgHandler(String message) {
