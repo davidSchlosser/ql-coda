@@ -59,7 +59,7 @@ class SelectedTracksNotifier extends StateNotifier<List<Track>> {
   }
   
   void add(Track track){
-    List<Track> a = state;  // TODO is a list easier to use than a set?
+    List<Track> a = state;
     if (!a.contains(track)) {
       a.add(track);
       state = List.from(a);
