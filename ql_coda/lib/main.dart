@@ -1,24 +1,18 @@
 import 'package:coda/obsolete/saved_filters_bloc.dart';
 import 'package:coda/communicator.dart';
 import 'package:coda/logger.dart';
-//import 'package:coda/models/cover_model.dart';
-//import 'package:coda/models/volume_model.dart';
-import 'package:coda/models/query_model.dart';
 import 'package:coda/repositories/repositories.dart';
-import 'package:coda/routing,dart.dart';
-//import 'package:coda/streams/cover_stream.dart';
+import 'package:coda/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart' as old;
 import 'package:logger/logger.dart';
 
 import 'models/player_model.dart';
 
-
 Logger _logger = getLogger('main', Level.warning);
 
 void main() {
-  runApp( const ProviderScope(child: CodaRP()) );
+  runApp(const ProviderScope(child: CodaRP()));
 }
 
 class CodaRP extends StatelessWidget {
@@ -26,26 +20,23 @@ class CodaRP extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Coda()
-    );
+    return MaterialApp(debugShowCheckedModeBanner: false, home: Coda());
   }
-
 }
 
 Communicator? communicator;
 
 class Coda extends StatelessWidget with WidgetsBindingObserver {
   final FilteredAlbumsRepository filteredAlbumsRepository = // TODO migrate to RiverPod
-  FilteredAlbumsRepository(
+      FilteredAlbumsRepository(
     filteredAlbumsApiClient: FilteredAlbumsApiClient(),
   );
-  final SavedFiltersRepository savedFiltersRepository = SavedFiltersRepository( // TODO migrate to RiverPod
+  final SavedFiltersRepository savedFiltersRepository = SavedFiltersRepository(
+    // TODO migrate to RiverPod
     savedFiltersApiClient: SavedFiltersApiClient(),
   );
 
-  Coda({super.key}){
+  Coda({super.key}) {
     WidgetsFlutterBinding.ensureInitialized();
     WidgetsBinding.instance.addObserver(this);
     Player();
@@ -56,23 +47,13 @@ class Coda extends StatelessWidget with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     _logger.d('build');
-    return old.MultiProvider(
-      providers: [
-        /*old.StreamProvider<Volume>( // TODO migrate to RiverPod
-          initialData: Volume(0),
-          create: (_) => VolumeModel.volumeStreamController.stream
-        ),*/
-        old.ChangeNotifierProvider(create: (context) => QueryModel()),  // TODO migrate to RiverPod
-        old.ChangeNotifierProvider(create: (context) => SavedQueriesModel()), // TODO migrate to RiverPod
-      ],
-      child: MaterialApp.router(
-        title: 'Coda',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        //home: const CodaHomePage(title: 'Quodlibet Coda'),
-        routerConfig: router(),
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      title: 'Coda',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      routerConfig: router(),
     );
   }
 
