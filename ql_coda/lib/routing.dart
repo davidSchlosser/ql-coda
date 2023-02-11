@@ -55,7 +55,7 @@ GoRouter router() {
       ),
       GoRoute(
         path: '/queries',
-        builder: (context, state) => const QueriesView(),
+        builder: (context, state) => QueriesView(),
       ),
       GoRoute(
         path: '/speakers',
