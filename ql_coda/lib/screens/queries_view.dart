@@ -9,7 +9,6 @@ import 'package:logger/logger.dart';
 import 'package:coda/logger.dart';
 import '../models/albums_model.dart';
 import '../models/clipboard_model.dart';
-import '../models/tags_model.dart';
 import 'assemble_route.dart';
 import 'clipboard_tags_view.dart';
 
@@ -204,14 +203,15 @@ class FilterFAB extends StatelessWidget {
               return ClipboardView(
                   title: 'Clipboard - add tags to include or exclude in filter',
                   onDone: (List<Clipping> clipboard) {
-                    // TODO queryTextController.text = filter(clipboard.items);
+                    queryTextController.text = filter(clipboard);
                   });
             }));
           });
     });
   }
 
-  String filter(Map<Tag, bool> clippings) {
+  //String filter(Map<Tag, bool> clippings) {
+  String filter(List<Clipping> clippings) {
     //
     // construct Quodlibet filter query based on the clipboard contents. Tags in the clipboard are to included or excluded in the filter
     //
@@ -219,15 +219,16 @@ class FilterFAB extends StatelessWidget {
     final Map<String, Set<String>> exclude = {};
     late Map<String, Set<String>> clude;
 
-    clippings.forEach((tag, isAdd) {
-      clude = (isAdd) ? include : exclude;
+    for (Clipping clipping in clippings) {
 
-      if (clude[tag.name] == null) {
-        clude[tag.name] = <String>{};
+      clude = (clipping.op) ? include : exclude;
+
+      if (clude[clipping.tag.name] == null) {
+        clude[clipping.tag.name] = <String>{};
       }
       //clude[tag.name]!.add('\\"${tag.value}\\"');
-      clude[tag.name]!.add('/${tag.value}/');
-    });
+      clude[clipping.tag.name]!.add('/${clipping.tag.value}/');
+    }
 
     List filters = [];
     include.forEach((tagName, values) {
@@ -257,15 +258,12 @@ class QueriesPopup extends PopupRoute {
   QueriesPopup(this.ref);
 
   @override
-  // TODO: implement barrierColor
   Color? get barrierColor => const Color(0);
 
   @override
-  // TODO: implement barrierDismissible
   bool get barrierDismissible => true;
 
   @override
-  // TODO: implement barrierLabel
   String? get barrierLabel => '';
 
   @override
@@ -281,6 +279,5 @@ class QueriesPopup extends PopupRoute {
   }
 
   @override
-  // TODO: implement transitionDuration
   Duration get transitionDuration => const Duration(milliseconds: 400);
 }
