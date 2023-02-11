@@ -76,7 +76,7 @@ class CurrentTrack extends ConsumerWidget {
             key: _refreshIndicatorKey,
             onRefresh: () async {
               _logger.d('onRefresh');
-              // controlPanel.refresh(); // TODO refresh current track??
+              Player.refresh();
             },
             child: track == null
                 ? Center(child: Text('Track information isn\'t available', style: TextStyle(fontSize: 30)))
