@@ -20,6 +20,18 @@ class CurrentTrack extends ConsumerWidget {
   CurrentTrack({super.key});
   //ControlPanelModel controlPanel = ControlPanelModel();
 
+  onResume() {
+  _logger.d('resume');
+  Communicator().doRemote('play');
+  Player.refresh();
+  }
+
+  onPause() {
+  _logger.d('pause');
+  Communicator().doRemote('pause');
+  Player.refresh();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Track? track;
@@ -52,7 +64,13 @@ class CurrentTrack extends ConsumerWidget {
               ),
         child: InkWell(
           onTap: () {
-            // TODO: PlayerDeck().togglePlayPause();
+            if (ref.read(playerStateProvider).value != PlayerState.playing) {
+              _logger.d('pause/resume - resume'); // paused, stopped, ...
+              onResume();
+            } else {
+              _logger.d('pause/resume - pause'); // playing
+              onPause();
+            }
           },
           child: RefreshIndicator(
             key: _refreshIndicatorKey,
@@ -129,11 +147,11 @@ class CurrentTrack extends ConsumerWidget {
                           Communicator().doRemote('previous');
                           Player.refresh();
                         },
-                        onPause: () {
+                        onPause: onPause,/*() {
                           _logger.d('pause');
                           Communicator().doRemote('pause');
                           Player.refresh();
-                        },
+                        },*/
                         onDragged: (elapsedSeconds) {
                           _logger.d('dragged to ${secondsToTime(elapsedSeconds)}');
                           Communicator().doRemote('seek ${secondsToTime(elapsedSeconds)}');
@@ -144,11 +162,11 @@ class CurrentTrack extends ConsumerWidget {
                           Communicator().doRemote('skipalbum');
                           Communicator().doRemote('next');
                         },
-                        onResume: () {
+                        onResume: onResume, /*() {
                           _logger.d('resume');
                           Communicator().doRemote('play');
                           Player.refresh();
-                        },
+                        },*/
                       ),
                     ],
                   ),
