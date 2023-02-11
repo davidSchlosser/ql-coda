@@ -36,27 +36,28 @@ class _AlbumsViewState extends ConsumerState<AlbumsView> {
     ScrollController scrollController = ScrollController();
     _logger.d('build AlbumListView');
     final List<Album> albums = ref.watch(albumsProvider);
+    List<Album> selectedAlbums = ref.watch(selectedAlbumsProvider); // needed for forcing build
 
     return CommonScaffold(
       title: 'Browse Albums',
       popupMenu: PopupMenuButton(
         itemBuilder: (BuildContext context) => [
           PopupMenuItem(
-            onTap: () => {},
-            child: Text('Queue selected'),
+            onTap: () => ref.read(selectedAlbumsProvider.notifier).enQueueSelectedAlbums(),
+            child: const Text('Queue selected'),
           ),
           PopupMenuItem(
-            onTap: () => {},
-            child: Text('Select all'),
+            onTap: () => ref.read(selectedAlbumsProvider.notifier).selectAll(albums),
+            child: const Text('Select all'),
           ),
           PopupMenuItem(
-            onTap: () => {},
-            child: Text('Deselect all'),
+            onTap: () => ref.read(selectedAlbumsProvider.notifier).clear(),
+            child: const Text('Deselect all'),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        label: Text('Filter albums'), // add new tag
+        label: const Text('Filter albums'), // add new tag
         onPressed: () {
           Navigator.push(context, QueriesPopup(ref));
         },
@@ -76,27 +77,22 @@ class _AlbumsViewState extends ConsumerState<AlbumsView> {
                       //mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 4.0, vertical: 5.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 5.0),
                           child: Consumer(builder: (context, ref, child) {
                             return ListTile(
-                              title: Text(
-                                  'Albums are filtered on: ${ref.watch(queryProvider)}'),
+                              title: Text('Albums are filtered on: ${ref.watch(queryProvider)}'),
                               //subtitle: Text('display the number of albums received'),
                               leading: const Icon(
                                 Icons.filter_alt_sharp,
                                 size: 18.0,
                               ),
                               trailing: IconButton(
-                                  icon:
-                                      const Icon(Icons.sort), //Icon(Icons.sort)
+                                  icon: const Icon(Icons.sort), //Icon(Icons.sort)
                                   onPressed: () {
                                     if (albums.isEmpty) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
-                                          content: Text(
-                                              "There are no albums to sort!"),
+                                          content: Text("There are no albums to sort!"),
                                         ),
                                       );
                                     } else {
@@ -106,16 +102,13 @@ class _AlbumsViewState extends ConsumerState<AlbumsView> {
                                         builder: (BuildContext context) {
                                           // template for radio buttons to select the sort option
                                           //
-                                          RadioListTile<SortOption> sortTile(
-                                              String title,
-                                              SortOption? sortOpValue) {
+                                          RadioListTile<SortOption> sortTile(String title, SortOption? sortOpValue) {
                                             return RadioListTile<SortOption>(
                                               title: Text(title),
                                               value: sortOpValue!,
                                               groupValue: sortOp,
                                               onChanged: (SortOption? op) {
-                                                sortAlbums(
-                                                    describeEnum(op!), ref);
+                                                sortAlbums(describeEnum(op!), ref);
                                                 Navigator.of(context).pop();
                                               },
                                             );
@@ -126,14 +119,10 @@ class _AlbumsViewState extends ConsumerState<AlbumsView> {
                                               content: Column(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: <Widget>[
-                                                  sortTile(
-                                                      'Date', SortOption.date),
-                                                  sortTile('Genre',
-                                                      SortOption.genre),
-                                                  sortTile('Title',
-                                                      SortOption.title),
-                                                  sortTile('Artist',
-                                                      SortOption.artist),
+                                                  sortTile('Date', SortOption.date),
+                                                  sortTile('Genre', SortOption.genre),
+                                                  sortTile('Title', SortOption.title),
+                                                  sortTile('Artist', SortOption.artist),
                                                 ],
                                               ));
                                         },
@@ -157,42 +146,40 @@ class _AlbumsViewState extends ConsumerState<AlbumsView> {
                         key: ObjectKey(album),
                         startActionPane: ActionPane(
                           motion: const ScrollMotion(),
-                            children: [
-                              SlidableAction(
-                                onPressed: (BuildContext context) {
-                                  ref.read(albumProvider.notifier).state = album;
-                                  context.goNamed('albumtracks');
-                                },
-                                backgroundColor: const Color(0xFF21B7CA),
-                                foregroundColor: Colors.white,
-                                icon: Icons.open_in_full,
-                                label: 'Open',
-                              ),
-                              SlidableAction(
-                                onPressed: (BuildContext context) {
-                                  // add album tracks to the queue
-                                  queueAlbum(album.directory);
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(const SnackBar(
-                                    content: Text("Album is being added to the queue"),
-                                  ));
-                                },
-                                backgroundColor: const Color(0xFF21B7CA),
-                                foregroundColor: Colors.white,
-                                icon: Icons.playlist_add,
-                                label: 'Queue',
-                              )
-                            ],
+                          children: [
+                            SlidableAction(
+                              onPressed: (BuildContext context) {
+                                ref.read(albumProvider.notifier).state = album;
+                                context.goNamed('albumtracks');
+                              },
+                              backgroundColor: const Color(0xFF21B7CA),
+                              foregroundColor: Colors.white,
+                              icon: Icons.open_in_full,
+                              label: 'Open',
+                            ),
+                            SlidableAction(
+                              onPressed: (BuildContext context) {
+                                // add album tracks to the queue
+                                queueAlbum(album.directory);
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  content: Text("Album is being added to the queue"),
+                                ));
+                              },
+                              backgroundColor: const Color(0xFF21B7CA),
+                              foregroundColor: Colors.white,
+                              icon: Icons.playlist_add,
+                              label: 'Queue',
+                            )
+                          ],
                         ),
                         child: CheckboxListTile(
                           title: Text(album.albumName),
-                          subtitle: Text(
-                              '${album.dates.toString()}, ${album.genres}\n${album.artists}'),
+                          subtitle: Text('${album.dates.toString()}, ${album.genres}\n${album.artists}'),
                           isThreeLine: true,
-                          value:
-                              false, //  ref.watch(selected?? A L B U M S ??Provider.notifier).contains(track),
-                          onChanged:
-                              (_) {}, // TODO ref.read(selected?? A L B U M S ??Provider.notifier).toggle(track);
+                          value: ref.watch(selectedAlbumsProvider.notifier).contains(album),
+                          onChanged: (_) {
+                            ref.read(selectedAlbumsProvider.notifier).toggle(album);
+                          },
                         ),
                       );
                     },
@@ -203,7 +190,6 @@ class _AlbumsViewState extends ConsumerState<AlbumsView> {
     );
   }
 }
-
 
 /*
 typedef PlayerDestination = Function(

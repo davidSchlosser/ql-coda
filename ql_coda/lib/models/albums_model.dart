@@ -17,6 +17,10 @@ final albumProvider = StateProvider<Album>((ref) {
   return const Album(albumName:'', artists:[], dates:[], genres:[], styles:[], moods:[], directory:'');
 });
 
+final selectedAlbumsProvider = StateNotifierProvider<SelectedAlbumsNotifier, List<Album>>((ref) {
+  return SelectedAlbumsNotifier();
+});
+
 @immutable
 class Album {
 
@@ -114,3 +118,60 @@ Future <List <Album>> fetchAlbumsMatchingQuery(String query, WidgetRef ref) asyn
   }
 
 }
+class SelectedAlbumsNotifier extends StateNotifier<List<Album>> {
+  SelectedAlbumsNotifier(): super([]);
+
+  bool contains(Album album){
+    bool ret = state.contains(album);
+    return ret;
+  }
+
+  void toggle(Album album) {
+    contains(album) ? remove(album) : add(album);
+  }
+
+  void add(Album album){
+    List<Album> a = state;
+    if (!a.contains(album)) {
+      a.add(album);
+      state = List.from(a);
+    }
+  }
+
+  void remove(Album album){
+    List<Album> a = state;
+    a = [
+      for (final _album in a)
+        if (album !=_album) _album,
+    ];
+    state = List.from(a);
+  }
+
+  void clear(){
+    state = [];
+  }
+
+  bool isEmpty() {
+    return state.isEmpty;
+  }
+
+  List<Album> albums() {
+    List <Album> a = state.fold<List<Album>>([], (nlist, album) {
+      nlist.add(album);
+      return nlist;
+    });
+    return a;
+  }
+
+  void enQueueSelectedAlbums() {
+    for (Album album in state) {
+      Communicator().request('enqueuealbum', [album.directory]);
+    }
+  }
+
+  void selectAll(List<Album> albums){
+    state = [...albums];  // overwrite any that were already there
+  }
+
+}
+
