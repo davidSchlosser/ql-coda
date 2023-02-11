@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart' as old;
 import 'package:coda/models/query_model.dart';
 import 'package:logger/logger.dart';
 import 'package:coda/logger.dart';
@@ -18,8 +17,6 @@ Logger _logger = getLogger('queries_view', Level.info);
 
 String previousQueryText = '';
 
-// TODO use a popup view
-
 class QueriesView extends ConsumerWidget {
   final String title;
   final Function applyQuery;
@@ -27,14 +24,13 @@ class QueriesView extends ConsumerWidget {
   //final _scrollController = ScrollController();
   //final SavedQueriesModel sqm = SavedQueriesModel();
 
-  const QueriesView(
-      {super.key,
-      this.title = 'Saved filters',
-      this.applyQuery = applyQueryOnPlayer});
+  QueriesView({super.key, this.title = 'Saved filters', this.applyQuery = applyQueryOnPlayer}){
+    SavedQueriesModel();
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    SavedQueriesModel();
+    //SavedQueriesModel();
     _logger.d('queries: ${SavedQueriesModel.queries}');
     TextEditingController? queryTextController = QueryModel().textController;
     queryTextController!.text = previousQueryText;
@@ -44,7 +40,6 @@ class QueriesView extends ConsumerWidget {
         margin: const EdgeInsets.symmetric(vertical: 100.0, horizontal: 200.0),
         child: Scaffold(
             appBar: AppBar(title: Text(title)),
-
             body: Column(
               children: <Widget>[
                 Padding(
@@ -63,21 +58,16 @@ class QueriesView extends ConsumerWidget {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(content:
-                                        old.Consumer<SavedQueriesModel>(builder:
-                                            (context, savedQueriesModel,
-                                                child) {
-                                      return TextField(
-                                        decoration: const InputDecoration(
-                                            labelText: 'name the filter'),
+
+                                        TextField(
+                                        decoration: const InputDecoration(labelText: 'name the filter'),
                                         onSubmitted: (name) {
-                                          _logger.d(
-                                              'saved query text name: $name text: ${queryTextController.text}');
-                                          savedQueriesModel.save(
-                                              name, queryTextController.text);
+                                          _logger.d('saved query text name: $name text: ${queryTextController.text}');
+                                          SavedQueriesModel.save(name, queryTextController.text);
                                           //Navigator.of(context).pop();
                                         },
-                                      );
-                                    }));
+                                      )
+                                    );
                                   });
                             },
                           ),
@@ -108,14 +98,11 @@ class QueriesView extends ConsumerWidget {
                   ),
                 ),
                 Expanded(
-                  child: old.Consumer<SavedQueriesModel>(
-                      builder: (context, savedQueriesModel, child) {
-                    return Builder(
+                  child: Builder(
                       builder: (BuildContext context) {
                         List<Widget> kids = [];
                         SavedQueriesModel.queries.forEach((key, value) {
-                          kids.add(buildItem(key, value, savedQueriesModel,
-                              queryTextController, applyQuery, ref));
+                          kids.add(buildItem(key, value, queryTextController, applyQuery, ref, context));
                         });
                         return ListView(
                           //controller: _scrollController,
@@ -123,8 +110,7 @@ class QueriesView extends ConsumerWidget {
                           children: kids,
                         );
                       },
-                    );
-                  }),
+                    ),
                 ),
               ],
             ),
@@ -139,75 +125,68 @@ class QueriesView extends ConsumerWidget {
 // swipe left or right to delete, with option to undo
 // click search icon to apply the query to the back-end
 //
-Widget buildItem(
-    String name,
-    String filter,
-    SavedQueriesModel savedQueriesModel,
-    TextEditingController queryTextController,
-    Function? applyQuery, WidgetRef ref) {
+Widget buildItem(String name, String filter,
+    TextEditingController queryTextController, Function? applyQuery, WidgetRef ref, BuildContext context) {
   //_logger.d('buildItem key: ${name}');
-  return old.Consumer<QueryModel>(builder: (context, query, child) {
-    return Dismissible(
-        key: Key(name),
-        background: Container(
-          color: Colors.amberAccent,
-          child: const Align(
-            alignment: Alignment.centerLeft,
-            child: Icon(Icons.delete_sweep),
-          ),
+  return Dismissible(
+      key: Key(name),
+      background: Container(
+        color: Colors.amberAccent,
+        child: const Align(
+          alignment: Alignment.centerLeft,
+          child: Icon(Icons.delete_sweep),
         ),
-        secondaryBackground: Container(
-          color: Colors.amberAccent,
-          child: const Align(
-            alignment: Alignment.centerRight,
-            child: Icon(Icons.delete_sweep),
-          ),
+      ),
+      secondaryBackground: Container(
+        color: Colors.amberAccent,
+        child: const Align(
+          alignment: Alignment.centerRight,
+          child: Icon(Icons.delete_sweep),
         ),
-        onDismissed: (direction) {
-          //SavedQueriesModel savedQueries = SavedQueriesModel();
-          String? queryText = SavedQueriesModel.queries[name];
-          savedQueriesModel.unSave(name);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text("$name search removed"),
-                action: SnackBarAction(
-                  label: "UNDO",
-                  onPressed: () {
-                    savedQueriesModel.save(name, queryText!);
-                  },
-                )),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 0.0),
-          child: ListTile(
-            title: Text(name),
-            onTap: () {
-              queryTextController.text =
-                  filter; //_searchTextController.text = filter;
+      ),
+      onDismissed: (direction) {
+        //SavedQueriesModel savedQueries = SavedQueriesModel();
+        String? queryText = SavedQueriesModel.queries[name];
+        SavedQueriesModel.unSave(name);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text("$name search removed"),
+              action: SnackBarAction(
+                label: "UNDO",
+                onPressed: () {
+                  SavedQueriesModel.save(name, queryText!);
+                },
+              )),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 0.0),
+        child: ListTile(
+          title: Text(name),
+          onTap: () {
+            queryTextController.text = filter; //_searchTextController.text = filter;
+          },
+          subtitle: Text(filter),
+          trailing: IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              if (applyQuery != null) {
+                applyQuery(filter);
+                ref.read(queryProvider.notifier).state = filter;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Filtering player on $filter"),
+                  ),
+                );
+                _logger.d('returned from applyFilter');
+              }
+              previousQueryText = queryTextController.text;
+              context.pop();
+              //Navigator.of(context).popUntil(ModalRoute.withName('/'));
             },
-            subtitle: Text(filter),
-            trailing: IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                if (applyQuery != null) {
-                  applyQuery(filter);
-                  ref.read(queryProvider.notifier).state = filter;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Filtering player on $filter"),
-                    ),
-                  );
-                  _logger.d('returned from applyFilter');
-                }
-                previousQueryText = queryTextController.text;
-                context.pop();
-                //Navigator.of(context).popUntil(ModalRoute.withName('/'));
-              },
-            ),
           ),
-        ));
-  });
+        ),
+      ));
 }
 
 class FilterFAB extends StatelessWidget {
@@ -222,14 +201,11 @@ class FilterFAB extends StatelessWidget {
           child: const FaIcon(FontAwesomeIcons.tags),
           onPressed: () {
             Navigator.push(context, AssembleRoute(builder: (context) {
-              return old.Consumer<QueryModel>(builder: (context, query, child) {
-                return ClipboardView(
-                    title:
-                        'Clipboard - add tags to include or exclude in filter',
-                    onDone: (List<Clipping> clipboard) {
-                      // TODO queryTextController.text = filter(clipboard.items);
-                    });
-              });
+              return ClipboardView(
+                  title: 'Clipboard - add tags to include or exclude in filter',
+                  onDone: (List<Clipping> clipboard) {
+                    // TODO queryTextController.text = filter(clipboard.items);
+                  });
             }));
           });
     });
@@ -293,8 +269,7 @@ class QueriesPopup extends PopupRoute {
   String? get barrierLabel => '';
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> animation,
-      Animation<double> secondaryAnimation) {
+  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
     return QueriesView(applyQuery: (String filter) {
       fetchAlbumsMatchingQuery(filter, ref);
       ScaffoldMessenger.of(context).showSnackBar(
