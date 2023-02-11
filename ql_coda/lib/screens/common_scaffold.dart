@@ -1,19 +1,20 @@
 // import 'package:coda/logger.dart';
-import 'package:coda/screens/queue_view.dart';
 import 'package:coda/screens/ui_util.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-//import 'package:coda/screens/control_panel.dart';
+/*
 import 'package:coda/screens/current_track.dart';
 import 'package:coda/screens/playlist_view.dart';
 import 'package:coda/screens/cache_tags.dart';
 import 'package:coda/screens/queries_view.dart';
-
+import 'package:coda/screens/queue_view.dart';
 import 'album_tracks_view.dart';
 import 'albums_view.dart';
 import 'edit_single_tag_view.dart';
 import 'track_tags_view.dart';
+*/
 
+/*
 GoRouter router() {
   return GoRouter(
     initialLocation: '/nowPlaying',
@@ -54,7 +55,7 @@ GoRouter router() {
       ),
       GoRoute(
         path: '/queries',
-        builder: (context, state) => const QueriesView(),
+        builder: (context, state) => QueriesView(),
       ),
       GoRoute(
         path: '/speakers',
@@ -67,6 +68,7 @@ GoRouter router() {
     ],
   );
 }
+*/
 
 
 // Logger _logger = getLogger('main', Level.debug);
@@ -154,13 +156,6 @@ class CommonScaffold extends StatelessWidget {
                     context.go('/albums');
                     Navigator.pop(context);
                   }),
-              /*ListTile(
-                  title: const Text('Saved queries'),
-                  leading: const Icon(Icons.filter_alt_sharp),
-                  onTap: () {
-                    context.go('/queries');
-                    Navigator.pop(context);
-                  }),*/
               ListTile(
                   title: const Text('Speaker zones'),
                   leading: const Icon(Icons.speaker),
