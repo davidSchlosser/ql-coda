@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import '../models/collected_tracks_model.dart';
+import '../models/player_model.dart';
 import '../models/track_model.dart';
 import 'common_scaffold.dart';
 import 'package:coda/logger.dart';
@@ -12,8 +13,6 @@ import 'package:logger/logger.dart';
 Logger _logger = getLogger('album_tracks_view', Level.debug);
 
 // TODO menu: update selected tracks with tags from clipboard, analyse player credits
-// TODO highlight the current playing track if in view
-// TODO investigate whether refactoring wit generic would enable this code to be reused by AlbumsView
 
 class TracksView extends ConsumerStatefulWidget {
   //const TracksView({Key? key}) : super(key: key);
@@ -26,13 +25,13 @@ class TracksView extends ConsumerStatefulWidget {
   final String sibling;
   // <void Function(BuildContext context, WidgetRef? ref)>? popupMenu;
 
-  const TracksView(this.title, this.popupMenu, {
-    this.canPlay = true,
-    this.canQueue = true,
-    this.canDequeue = false,
-    this.canEditTags = true,
-    this.sibling = 'albums',
-    super.key});
+  const TracksView(this.title, this.popupMenu,
+      {this.canPlay = true,
+      this.canQueue = true,
+      this.canDequeue = false,
+      this.canEditTags = true,
+      this.sibling = 'albums',
+      super.key});
 
   @override
   ConsumerState<TracksView> createState() => _TracksViewState();
@@ -44,8 +43,8 @@ class _TracksViewState extends ConsumerState<TracksView> {
     _logger.d('building tracks view');
     ScrollController scrollController = ScrollController();
     final List<Track> tracks = ref.watch(tracksProvider(widget.sibling));
-    List<Track> selectedTracks =
-        ref.watch(selectedTracksProvider); // needed for forcing build
+    List<Track> selectedTracks = ref.watch(selectedTracksProvider); // needed for forcing build
+    Track? nowPlayingTrack = ref.watch(nowPlayingTrackModelProvider).value?.track;
 
     return CommonScaffold(
         title: widget.title,
@@ -113,18 +112,20 @@ class _TracksViewState extends ConsumerState<TracksView> {
               ),
               child: Card(
                 child: Builder(builder: (context) {
-                  //SelectedTracksNotifier stn = ref.watch(selectedTracksProvider.notifier);
                   return CheckboxListTile(
                     key: UniqueKey(),
                     title: Text(
-                        (track.grouping.isNotEmpty ? "$track.grouping " : '') +
-                            track.title),
+                        style: TextStyle(
+                            fontWeight:
+                                nowPlayingTrack?.filename == track.filename ? FontWeight.bold : FontWeight.normal),
+                        (track.grouping.isNotEmpty ? "$track.grouping " : '') + track.title),
                     subtitle: Text(
+                        style: TextStyle(
+                            fontWeight:
+                            nowPlayingTrack?.filename == track.filename ? FontWeight.bold : FontWeight.normal),
                         'Track ${track.trackNumber}, ${track.artist}: ${track.albumName}'),
                     isThreeLine: true,
-                    value: ref
-                        .watch(selectedTracksProvider.notifier)
-                        .contains(track),
+                    value: ref.watch(selectedTracksProvider.notifier).contains(track),
                     onChanged: (_) {
                       ref.read(selectedTracksProvider.notifier).toggle(track);
                     },
