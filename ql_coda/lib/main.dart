@@ -42,8 +42,6 @@ class Coda extends StatelessWidget with WidgetsBindingObserver {
     Player();
   }
 
-  // final Player _player = Player();
-
   @override
   Widget build(BuildContext context) {
     _logger.d('build');
