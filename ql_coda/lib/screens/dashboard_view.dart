@@ -100,12 +100,12 @@ class ButtonsContainer extends ConsumerWidget {
         IconButton(
           iconSize: 50,
           onPressed: () {
-            if (ref.read(playerStateProvider).value == PlayerState.playing) {
-              _logger.d('pause/resume - pause');
-              onPause();
-            } else {
-              _logger.d('pause/resume - resume');
+            if (ref.read(playerStateProvider).value != PlayerState.playing) {
+              _logger.d('pause/resume - resume');  // paused, stopped, ...
               onResume();
+            } else {
+              _logger.d('pause/resume - pause');  // playing
+              onPause();
             }
           },
           icon: Icon(ref.watch(playerStateProvider).value == PlayerState.playing ? Icons.pause : Icons.play_arrow),
