@@ -16,9 +16,7 @@ final queryProvider = StateProvider<String>((ref) {
   return  defaultQuery;
 });
 
-// TODO migrate from  ChangeNotifiers to RiverPod
-
-class QueryModel extends ChangeNotifier {
+class QueryModel {
   TextEditingController? textController;
 
   QueryModel() {
@@ -29,11 +27,10 @@ class QueryModel extends ChangeNotifier {
 
   set text(String s) {
     textController!.text = s;
-    notifyListeners();
   }
 }
 
-class SavedQueriesModel extends ChangeNotifier {
+class SavedQueriesModel {
   static Map<String, String> queries = {};
 
   static const defaultFilters = <String, String>{
@@ -64,22 +61,19 @@ class SavedQueriesModel extends ChangeNotifier {
       queries.addAll(defaultFilters);
     }
 
-    notifyListeners();
     return queries;
   }
 
   // add a new named query & update the file store
-  Future save(String name, String query) async {
+  static Future save(String name, String query) async {
     queries[name] = query;
     await overWriteQueriesFile();
-    notifyListeners();
   }
 
   // remove a named query & update the file store
-  Future unSave(String name) async {
+  static Future unSave(String name) async {
     queries.remove(name);
     await overWriteQueriesFile();
-    notifyListeners();
   }
 
   static Future overWriteQueriesFile() async {
