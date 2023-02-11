@@ -15,7 +15,6 @@ Logger _logger = getLogger('edit_single_tag_view', Level.debug);
 class EditSingleTagView extends ConsumerStatefulWidget {
   // tagIndex non-null refers to tag's place in the parent's list of tags
   // a null value means a new tag is to be added to the clipboad
-  // TODO if this need to be used from more callers, get the parent provider from a provider
   //
   final int? tagIndex;
 
@@ -208,15 +207,12 @@ class EditSingleTagPopup extends PopupRoute {
   final int tagIndex;
 
   @override
-  // TODO: implement barrierColor
   Color? get barrierColor => const Color(0);
 
   @override
-  // TODO: implement barrierDismissible
   bool get barrierDismissible => true;
 
   @override
-  // TODO: implement barrierLabel
   String? get barrierLabel => '';
 
   @override
@@ -225,7 +221,6 @@ class EditSingleTagPopup extends PopupRoute {
   }
 
   @override
-  // TODO: implement transitionDuration
   Duration get transitionDuration => const Duration(milliseconds: 400);
 
 }
