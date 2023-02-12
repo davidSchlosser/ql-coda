@@ -59,6 +59,18 @@ class EditTagsNotifier  extends StateNotifier<List<Tag>>{
 }
 
 void saveEditedTags(List<Tag> editedTags, List<Track>tracks) {
+  editTagsOp(editedTags, tracks, 'replacetags');
+}
+
+void removeEditedTags(List<Tag> editedTags, List<Track>tracks) {
+  editTagsOp(editedTags, tracks, 'removetags');
+}
+
+void addEditedTags(List<Tag> editedTags, List<Track>tracks) {
+  editTagsOp(editedTags, tracks, 'addtags');
+}
+
+void editTagsOp(List<Tag> editedTags, List<Track>tracks, String op) {
   List<Tag> editableTags = editedTags.where((tag) => !tag.name.startsWith('~')).toList(); // don't edit Quodlibet internal tags
 
   List<String> trackFiles = tracks.map((track) => track.filename).toList();
@@ -68,5 +80,5 @@ void saveEditedTags(List<Tag> editedTags, List<Track>tracks) {
     'tracks': trackFiles
   };
 
-  Communicator().doRemote('replacetags', "'${jsonEncode(x)}'");
+  Communicator().doRemote(op, "'${jsonEncode(x)}'");
 }

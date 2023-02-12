@@ -39,49 +39,6 @@ class Tags extends Equatable {
   @override
   List<Object> get props => [tags];
 
-  //void writeTo(List<String> songFiles, [FileTagOp op = FileTagOp.replace]) {
-  void writeTo(List<Track> tracks, [FileTagOp op = FileTagOp.replace]) {
-    List<String> songFiles = [];
-
-    for (var track in tracks) {
-      songFiles.add(track.filename);
-    }
-    assert(songFiles.isNotEmpty);
-    assert(tags.isNotEmpty);
-
-    const Map appendOp = {
-      FileTagOp.replace: '',
-      FileTagOp.remove: '\\\"append\\\":false,',
-      FileTagOp.append: '\\\"append\\\":true,',
-    };
-
-    String a = '';
-    for (var s in songFiles) {
-      s = s.replaceAll('"', '\\\\\\"');
-      a += '\\\"$s\\\",';
-    }
-    String args = '"{\\\"song_files\\\":[${a.substring(0, a.length - 1)}]';
-    args = '$args, ${appendOp[op]} \\\"tags\\\": [';
-    a = '';
-    for (var tag in tags) {
-      String name = _sanitise(tag.name);
-      String value = _sanitise(tag.value);
-      a = '$a[\\\"$name\\\", \\\"$value\\\"],';
-    }
-    // remove the ',' after the last tag..
-    args = '$args${(a.isNotEmpty) ? a.substring(0, a.length - 1) : ''}]';
-    args = '$args}"';
-
-    if (op == FileTagOp.remove) {
-      Communicator().doRemote('removetags', args);
-      //print('removetags args: $args');
-    } else {
-      // submit edited tags to QL
-      Communicator().doRemote('importtags', args);
-      //print('importCmd args: $args');
-    }
-  }
-
   @override
   String toString() {
     String s = '';
@@ -91,12 +48,12 @@ class Tags extends Equatable {
     return s;
   }
 
-  String _sanitise(String s) {
+  /*String _sanitise(String s) {
     // standardise the quote marks - iOS is a culprit
     s = s.replaceAll(RegExp('["”]'), '\\\\\\"');
     s = s.replaceAll(RegExp('’'), '\'');
     return s;
-  }
+  }*/
 }
 
 Future<Tags> fetchTrackTags(Track track, WidgetRef ref) async {

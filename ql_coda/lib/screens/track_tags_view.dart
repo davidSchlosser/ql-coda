@@ -35,17 +35,21 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
 
     //get the tags for the current track
     track = ref.read(trackProvider);
+    syncTags();
+
+    // get the list of tracks we came from - for next/prior
+    editTracks = ref.read(editTracksProvider);
+    editTracksIndex =
+        editTracks.indexWhere((trk) => trk.filename == track.filename);
+  }
+
+  void syncTags() {
     fetchTrackTags(track, ref).then((value) {
       initialTrackTags = value.tags;
       ref
           .read(editedTagsProvider.notifier)
           .replaceAll(value.tags); //state = value.tags as List<EditTag>;
     });
-
-    // get the list of tracks we came from - for next/prior
-    editTracks = ref.read(editTracksProvider);
-    editTracksIndex =
-        editTracks.indexWhere((trk) => trk.filename == track.filename);
   }
 
   @override
@@ -99,19 +103,13 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
                 onTap: () => {},
                 child: const Text('Deselect all'),
               ),
-              PopupMenuItem<
-                  void Function(BuildContext context, WidgetRef? ref)>(
+              PopupMenuItem(
                 onTap: () {
-                  Navigator.push(context, AssembleRoute(
-                    builder: (context) {
-                      return ClipboardView(
-                        title: 'Clipboard',
-                        onDone: (_) {},
-                      );
-                    },
-                  ));
-                },
-                child: const Text('View clipboard tags'),
+                  var clipboard = ref.watch(clipboardProvider.notifier);
+                  clipboard.apply([track]);
+                  syncTags();
+                  },
+                child: const Text('Apply clipped edits'),
               ),
             ],
           ),
@@ -156,9 +154,7 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
                                         onDone: (_){},
                                       );
                                     },
-                                  ));}
-                                  //assembleClipboardTags(context: context);
-                                  ,
+                                  ));},
                                   label: const Text('Clipboard'),
                               ),
                               initialTrackTags != null && tagsAreDifferent(initialTrackTags!, tags)

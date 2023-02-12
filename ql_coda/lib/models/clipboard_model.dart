@@ -1,10 +1,13 @@
 import 'package:coda/models/tags_model.dart';
+import 'package:coda/models/track_model.dart';
 //import 'package:coda/models/track_model.dart';
 import 'package:flutter/foundation.dart';
 //import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:coda/logger.dart';
+
+import 'edited_tags_model.dart';
 
 Logger _logger = getLogger('clipboard_model', Level.info);
 
@@ -77,7 +80,29 @@ class ClipboardNotifier extends StateNotifier<List<Clipping>>{
     return rtn;
   }
 
-  void apply() {}
+  //void apply(List<String> songFiles) {
+  void apply(List<Track> tracks) {
+    List<Clipping> clippings = state;
+
+    List<Tag> addTags = [];
+    List<Tag> removeTags = [];
+
+    clippings.forEach((clipping) {
+      if (clipping.op) { addTags.add(clipping.tag); }
+      else {removeTags.add(clipping.tag);}
+    });
+
+    try {
+      if (addTags.isNotEmpty) {
+        addEditedTags(addTags, tracks);
+      }
+      if (removeTags.isNotEmpty) {
+        removeEditedTags(removeTags, tracks);
+      }
+    } on Exception catch (e) {
+      print('apply failed: $e');
+    }
+  }
 
 }
 
