@@ -20,6 +20,11 @@ class Tag extends Equatable {
   List<Object> get props => [name, value];
 
   const Tag({required this.name, required this.value});
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'value': value,
+  };
 }
 
 final tagsProvider = StateProvider<List<Tag>>((ref) {

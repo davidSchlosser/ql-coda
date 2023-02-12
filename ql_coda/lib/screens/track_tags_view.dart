@@ -14,7 +14,7 @@ import 'common_scaffold.dart';
 import 'edit_single_tag_view.dart';
 import 'track_tags_detail_view.dart';
 
-Logger _logger = getLogger('edit_tags_view', Level.info);
+Logger _logger = getLogger('edit_tags_view', Level.warning);
 
 class EditTagsView extends ConsumerStatefulWidget {
   const EditTagsView({super.key});
@@ -73,7 +73,12 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
           popupMenu: PopupMenuButton(
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
-                onTap: () => {},
+                onTap: () {
+                  List<Tag> editedTags = ref.read(editedTagsProvider);
+                  saveEditedTags(editedTags, [track]);
+                  initialTrackTags = editedTags.toList();
+                  _logger.d('save tags');
+                },
                 child: Text('Save tag changes to track'),
               ),
               PopupMenuItem(
