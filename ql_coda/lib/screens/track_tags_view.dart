@@ -27,7 +27,7 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
   late Track track;
   List<Track> editTracks = [];
   late int editTracksIndex;
-  late List<Tag> initialTrackTags;
+  List<Tag>? initialTrackTags;
 
   @override
   initState() {
@@ -53,6 +53,13 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
     List<Tag> tags = ref.watch(editedTagsProvider);
     _logger.d('EditTagsView building');
 
+    void saveTags(){
+      List<Tag> editedTags = ref.read(editedTagsProvider);
+      saveEditedTags(editedTags, [track]);
+      initialTrackTags = editedTags.toList();
+      _logger.d('save tags');
+    }
+
     return WillPopScope(
       onWillPop: () {
         return (track != editTracks[editTracksIndex])
@@ -60,9 +67,9 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
             : Future.value(true);
       },
       child: CommonScaffold(
-          title: 'Tags', // TODO show which source (album, queue, playlist)
+          title: 'Tags',
           floatingActionButton: FloatingActionButton.extended(
-            label: Text('Add tag'),// add new tag
+            label: const Text('Add tag'),// add new tag
             onPressed: () {
               Navigator.push(context, EditSingleTagPopup(tagIndex: -1));  // not an existing or clipbaord tag
               // EditSingleTagView(tagIndex: -1); // not an existing or clipbaord tag
@@ -73,29 +80,24 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
           popupMenu: PopupMenuButton(
             itemBuilder: (BuildContext context) => [
               PopupMenuItem(
-                onTap: () {
-                  List<Tag> editedTags = ref.read(editedTagsProvider);
-                  saveEditedTags(editedTags, [track]);
-                  initialTrackTags = editedTags.toList();
-                  _logger.d('save tags');
-                },
-                child: Text('Save tag changes to track'),
+                onTap: () => saveTags(),
+                child: const Text('Save tag changes to track'),
               ),
               PopupMenuItem(
                 onTap: () => {},
-                child: Text('Clip selected tags'),
+                child: const Text('Clip selected tags'),
               ),
               PopupMenuItem(
                 onTap: () => {},
-                child: Text('Unclip selected tags'),
+                child: const Text('Unclip selected tags'),
               ),
               PopupMenuItem(
                 onTap: () => {},
-                child: Text('Select all'),
+                child: const Text('Select all'),
               ),
               PopupMenuItem(
                 onTap: () => {},
-                child: Text('Deselect all'),
+                child: const Text('Deselect all'),
               ),
               PopupMenuItem<
                   void Function(BuildContext context, WidgetRef? ref)>(
@@ -109,7 +111,7 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
                     },
                   ));
                 },
-                child: Text('View clipboard tags'),
+                child: const Text('View clipboard tags'),
               ),
             ],
           ),
@@ -138,15 +140,13 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
                       }),
                     ),
 
-                    // show next/previous buttons more than 1 track
-                    // TODO add a button to save the changes, activated only after changes have been made
-
                     Row(
                       children: [
                         ButtonBar(
                             alignment: MainAxisAlignment.start,
                             children: [
-                              TextButton(
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.attach_file),
                                   onPressed: (){
                                   // display the tags in the clipboard
                                   Navigator.push(context, AssembleRoute(
@@ -159,30 +159,39 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
                                   ));}
                                   //assembleClipboardTags(context: context);
                                   ,
-                                  child: const Text('Clipboard'),
+                                  label: const Text('Clipboard'),
+                              ),
+                              initialTrackTags != null && tagsAreDifferent(initialTrackTags!, tags)
+                              ? ElevatedButton.icon(
+                                icon: const Icon(Icons.save),
+                                onPressed: () => saveTags(),
+                                label: const Text('Save'),
                               )
+                                  : const NilWidget(),
                             ]),
                         const Spacer(),
                         (editTracks.length > 1)
                             ? ButtonBar(
                                 alignment: MainAxisAlignment.end,
                                 children: <Widget>[
-                                    TextButton(
+                                    ElevatedButton.icon(
+                                      icon: const Icon(Icons.skip_previous),
                                       onPressed: (editTracksIndex > 0)
                                           ? () {
                                               moveTo(context, track, -1);
                                             }
                                           : null,
-                                      child: const Text('Previous'),
+                                      label: const Text('Previous'),
                                     ),
-                                    TextButton(
+                                  ElevatedButton.icon(
+                                    icon: const Icon(Icons.skip_next),
                                       onPressed: (editTracksIndex <
                                               editTracks.length - 1)
                                           ? () {
                                               moveTo(context, track, 1);
                                             }
                                           : null,
-                                      child: const Text('Next'),
+                                      label: const Text('Next'),
                                     )
                                   ])
                             : const NilWidget()
@@ -206,7 +215,7 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
     //
     bool itsOkToMove = true;
     List<Tag> tags = ref.read(editedTagsProvider);
-    if (tagsAreDifferent(initialTrackTags, tags)) {
+    if (tagsAreDifferent(initialTrackTags!, tags)) {
       // if (tags != initialTrackTags) {
       // tags were edited
       itsOkToMove = await isItOkToLoseChanges(context);
