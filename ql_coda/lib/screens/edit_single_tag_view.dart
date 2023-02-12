@@ -10,7 +10,7 @@ import '../models/tags_model.dart';
 import 'package:logger/logger.dart';
 import 'package:coda/logger.dart';
 
-Logger _logger = getLogger('edit_single_tag_view', Level.debug);
+Logger _logger = getLogger('edit_single_tag_view', Level.warning);
 
 class EditSingleTagView extends ConsumerStatefulWidget {
   // tagIndex non-null refers to tag's place in the parent's list of tags
@@ -46,7 +46,7 @@ class _EditSingleTagViewState extends ConsumerState<EditSingleTagView> {
   @override
   Widget build(BuildContext context) {
     bool isClipboardTag = widget.tagIndex == null;
-    List<EditTag> editTags = ref.read(editedTagsProvider);
+    List<Tag> editTags = ref.read(editedTagsProvider);
     if ((!isClipboardTag) && (widget.tagIndex != -1)){
       tagNameController.text = editTags[widget.tagIndex!].name;
       tagValueController.text = editTags[widget.tagIndex!].value;
