@@ -211,7 +211,7 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
     //
     bool itsOkToMove = true;
     List<Tag> tags = ref.read(editedTagsProvider);
-    if (tagsAreDifferent(initialTrackTags!, tags)) {
+    if (initialTrackTags != null && tagsAreDifferent(initialTrackTags!, tags)) {
       // if (tags != initialTrackTags) {
       // tags were edited
       itsOkToMove = await isItOkToLoseChanges(context);
