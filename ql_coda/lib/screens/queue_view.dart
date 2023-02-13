@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coda/logger.dart';
 import 'package:logger/logger.dart';
 
+import '../models/clipboard_model.dart';
 import '../models/collected_tracks_model.dart';
 import '../models/track_model.dart';
 import 'assemble_route.dart';
@@ -36,7 +37,11 @@ class _QueueViewState extends ConsumerState<QueueView> {
         PopupMenuButton(
           itemBuilder: (BuildContext context) => [
             PopupMenuItem(
-              onTap: () => {},
+              onTap: () {
+                List<Track> tracks = ref.read(selectedTracksProvider);
+                var clipboard = ref.watch(clipboardProvider.notifier);
+                clipboard.apply(tracks);
+              },
               child: Text('Update selected from tags in clipboard'),
             ),
             PopupMenuItem<void Function(BuildContext context, WidgetRef? ref)>(
@@ -54,16 +59,14 @@ class _QueueViewState extends ConsumerState<QueueView> {
             ),
             PopupMenuItem<
                 void Function(BuildContext context, WidgetRef? ref)>(
-              onTap: () {
-                Navigator.push(context, AssembleRoute(
-                  builder: (context) {
-                    return ClipboardView(
-                      title: 'Clipboard',
-                      onDone: (_) {},
-                    );
-                  },
-                ));
-              },
+              onTap: () => Future(
+                      () => Navigator.of(context).push( AssembleRoute(
+                      builder: (_) => ClipboardView(
+                          title: 'Clipboard',
+                          onDone: (_){}
+                      )
+                  )
+                  )),
               child: Text('View clipboard tags'),
             ),
             PopupMenuItem<void Function(BuildContext context, WidgetRef? ref)>(

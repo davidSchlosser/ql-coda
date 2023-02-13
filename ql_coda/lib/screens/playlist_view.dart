@@ -3,6 +3,7 @@ import 'package:coda/models/playlist_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import '../models/clipboard_model.dart';
 import '../models/collected_tracks_model.dart';
 import '../models/track_model.dart';
 import 'assemble_route.dart';
@@ -33,9 +34,14 @@ class _PlaylistViewState extends ConsumerState<PlaylistView> {
         'Playlist tracks',
         // playlistPopupMenu
         PopupMenuButton(
+          onSelected: (choice) => choice(),
           itemBuilder: (BuildContext context) => [
             PopupMenuItem(
-              onTap: () => {},
+              onTap: () {
+                List<Track> tracks = ref.read(selectedTracksProvider);
+                var clipboard = ref.watch(clipboardProvider.notifier);
+                clipboard.apply(tracks);
+              },
               child: Text('Update selected from tags in clipboard'),
             ),
             PopupMenuItem<void Function(BuildContext context, WidgetRef? ref)>(
@@ -53,16 +59,14 @@ class _PlaylistViewState extends ConsumerState<PlaylistView> {
             ),
             PopupMenuItem<
                 void Function(BuildContext context, WidgetRef? ref)>(
-              onTap: () {
-                Navigator.push(context, AssembleRoute(
-                  builder: (context) {
-                    return ClipboardView(
+              onTap: () => Future(
+                () => Navigator.of(context).push( AssembleRoute(
+                    builder: (_) => ClipboardView(
                       title: 'Clipboard',
-                      onDone: (_) {},
-                    );
-                  },
-                ));
-              },
+                      onDone: (_){}
+                    )
+                )
+              )),
               child: Text('View clipboard tags'),
             ),
             PopupMenuItem<void Function(BuildContext context, WidgetRef? ref)>(
