@@ -1,4 +1,4 @@
-import 'package:coda/blocs/tags_bloc.dart';
+//import 'package:coda/blocs/tags_bloc.dart';
 import 'package:coda/logger.dart';
 import 'package:coda/models/tags_model.dart';
 //import 'package:co2/models/playlist.dart';
@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:logger/logger.dart';
-import 'package:coda/repositories/repositories.dart';
+//import 'package:coda/repositories/repositories.dart';
 
 
 Logger _logger = getLogger('CreditsPage', Level.info);

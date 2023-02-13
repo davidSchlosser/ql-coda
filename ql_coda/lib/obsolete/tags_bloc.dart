@@ -1,9 +1,9 @@
 import 'package:coda/logger.dart';
 import 'package:logger/logger.dart';
 import 'package:bloc/bloc.dart';
-import 'package:coda/repositories/repositories.dart';
+import 'package:coda/obsolete/repositories.dart';
 import 'package:coda/models/tags_model.dart';
-import 'package:coda/blocs/blocs.dart';
+import 'package:coda/obsolete/blocs.dart';
 
 Logger _logger = getLogger('EditTags', Level.info);
 

@@ -1,7 +1,7 @@
-import 'package:coda/obsolete/saved_filters_bloc.dart';
+//import 'package:coda/obsolete/saved_filters_bloc.dart';
 import 'package:coda/communicator.dart';
 import 'package:coda/logger.dart';
-import 'package:coda/repositories/repositories.dart';
+//import 'package:coda/repositories/repositories.dart';
 import 'package:coda/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,14 +27,6 @@ class CodaRP extends StatelessWidget {
 Communicator? communicator;
 
 class Coda extends StatelessWidget with WidgetsBindingObserver {
-  final FilteredAlbumsRepository filteredAlbumsRepository = // TODO migrate to RiverPod
-      FilteredAlbumsRepository(
-    filteredAlbumsApiClient: FilteredAlbumsApiClient(),
-  );
-  final SavedFiltersRepository savedFiltersRepository = SavedFiltersRepository(
-    // TODO migrate to RiverPod
-    savedFiltersApiClient: SavedFiltersApiClient(),
-  );
 
   Coda({super.key}) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -49,7 +41,7 @@ class Coda extends StatelessWidget with WidgetsBindingObserver {
       debugShowCheckedModeBanner: false,
       title: 'Coda',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.blueGrey,
       ),
       routerConfig: router(),
     );
