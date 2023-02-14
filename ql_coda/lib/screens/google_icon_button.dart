@@ -1,11 +1,12 @@
 import 'package:coda/logger.dart';
 import 'package:coda/models/tags_model.dart';
-//import 'package:coda/screens/google_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:coda/models/edited_tags_model.dart';
+
+import 'google_search.dart';
 
 Logger _logger = getLogger('GoogleIconButton', Level.debug);
 
@@ -36,14 +37,14 @@ class GoogleIconButton extends ConsumerWidget {
           _logger.d('not TagsLoaded');
         }
 
-        /*Navigator.push(
+        Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => GoogleSearch(
                 artists: artists,
                 title: title,
               )), //EditPage(Player.currentTrackFile)),
-        );*/
+        );
       },
     );
   }
