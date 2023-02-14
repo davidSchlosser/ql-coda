@@ -12,6 +12,7 @@ import 'assemble_route.dart';
 import 'clipboard_tags_view.dart';
 import 'common_scaffold.dart';
 import 'edit_single_tag_view.dart';
+import 'google_icon_button.dart';
 import 'track_tags_detail_view.dart';
 
 Logger _logger = getLogger('edit_tags_view', Level.warning);
@@ -56,6 +57,8 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
   Widget build(BuildContext context) {
     List<Tag> tags = ref.watch(editedTagsProvider);
     _logger.d('EditTagsView building');
+    _logger.d('media size.width: ${MediaQuery.of(context).size.width}');
+    bool isNarrowDevice = MediaQuery.of(context).size.width < 600;
 
     void saveTags(){
       List<Tag> editedTags = ref.read(editedTagsProvider);
@@ -143,6 +146,7 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
                         ButtonBar(
                             alignment: MainAxisAlignment.start,
                             children: [
+                              GoogleIconButton(),
                               ElevatedButton.icon(
                                 icon: const Icon(Icons.attach_file),
                                   onPressed: (){
@@ -155,13 +159,13 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
                                       );
                                     },
                                   ));},
-                                  label: const Text('Clipboard'),
+                                  label: isNarrowDevice ? const Text('') : const Text('Clipboard'),
                               ),
                               initialTrackTags != null && tagsAreDifferent(initialTrackTags!, tags)
                               ? ElevatedButton.icon(
                                 icon: const Icon(Icons.save),
                                 onPressed: () => saveTags(),
-                                label: const Text('Save'),
+                                label: isNarrowDevice ? const Text('') : const Text('Save'),
                               )
                                   : const NilWidget(),
                             ]),
@@ -177,7 +181,7 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
                                               moveTo(context, track, -1);
                                             }
                                           : null,
-                                      label: const Text('Previous'),
+                                      label: isNarrowDevice ? const Text('') : const Text('Previous'),
                                     ),
                                   ElevatedButton.icon(
                                     icon: const Icon(Icons.skip_next),
@@ -187,7 +191,7 @@ class EditTagsViewState extends ConsumerState<EditTagsView> {
                                               moveTo(context, track, 1);
                                             }
                                           : null,
-                                      label: const Text('Next'),
+                                      label: isNarrowDevice ? const Text('') : const Text('Next'),
                                     )
                                   ])
                             : const NilWidget()
