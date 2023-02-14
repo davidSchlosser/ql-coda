@@ -52,7 +52,9 @@ class _EditSingleTagViewState extends ConsumerState<EditSingleTagView> {
       tagValueController.text = editTags[widget.tagIndex!].value;
     }
     return Card(
-      margin:const EdgeInsets.symmetric(vertical: 100.0, horizontal: 200.0),
+      margin: MediaQuery.of(context).size.width > 500
+          ? const EdgeInsets.symmetric(vertical: 100.0, horizontal: 200.0)
+          : const EdgeInsets.all(30.0),
       child: Form(
         key: formKey,
         child: SingleChildScrollView(

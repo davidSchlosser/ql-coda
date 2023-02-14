@@ -52,7 +52,8 @@ class _DashboardState extends ConsumerState<DashboardWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      //mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         TimerBarWidget(onDragged: widget.onDragged),
         const SizedBox(height: 0),
@@ -86,7 +87,8 @@ class ButtonsContainer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      //mainAxisSize: MainAxisSize.min,
       children: [
         // previous track
         IconButton(
@@ -94,7 +96,7 @@ class ButtonsContainer extends ConsumerWidget {
           onPressed: () => onPrevious(),
           icon: const Icon(Icons.skip_previous),
         ),
-        const SizedBox(width: 60),
+        //const SizedBox(width: 60),
 
         // pause/resume
         IconButton(
@@ -110,7 +112,7 @@ class ButtonsContainer extends ConsumerWidget {
           },
           icon: Icon(ref.watch(playerStateProvider).value == PlayerState.playing ? Icons.pause : Icons.play_arrow),
         ),
-        const SizedBox(width: 60),
+        //const SizedBox(width: 60),
 
         // random
         IconButton(
@@ -120,7 +122,7 @@ class ButtonsContainer extends ConsumerWidget {
           },
           icon: const Icon(Icons.autorenew),
         ),
-        const SizedBox(width: 60),
+        //const SizedBox(width: 60),
 
         // next track
         IconButton(
@@ -164,12 +166,12 @@ class TimerBarWidget extends ConsumerWidget {
           data: const SliderThemeData(
             trackHeight: 3,
             thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
-            overlayShape: RoundSliderOverlayShape(overlayRadius: 60),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 30),
             activeTickMarkColor: Colors.transparent,
             inactiveTickMarkColor: Colors.transparent,
           ),
           child: SizedBox(
-            width: MediaQuery.of(context).size.width - 80,
+            width: MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width > 500 ? 80 : 20),
             child: Row(
               children: [
                 buildSideLabel(secondsToTime(currentSliderValue.toInt())),

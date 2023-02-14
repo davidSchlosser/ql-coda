@@ -86,7 +86,8 @@ class _AlbumsViewState extends ConsumerState<AlbumsView> {
                                 Icons.filter_alt_sharp,
                                 size: 18.0,
                               ),
-                              trailing: IconButton(
+                              trailing: ElevatedButton.icon(
+                                  label: const Text('Sort'),
                                   icon: const Icon(Icons.sort), //Icon(Icons.sort)
                                   onPressed: () {
                                     if (albums.isEmpty) {

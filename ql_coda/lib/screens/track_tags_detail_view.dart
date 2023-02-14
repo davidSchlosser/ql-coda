@@ -21,9 +21,8 @@ class EditTagsDetails extends ConsumerWidget {
     _logger.d('Clipboard count: ${clipboard.length}'); // force build when clipboard changes
     _logger.d('EditTagsDetails building');
     return Expanded(
-        child: SizedBox(
-            height: MediaQuery.of(context).size.height - 285,
-            width: MediaQuery.of(context).size.width,
+        child: Padding(
+            padding: EdgeInsets.all(8.0),
             child: ListView.builder(
                 itemCount: editTags.length,
                 shrinkWrap: true,
