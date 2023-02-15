@@ -1,5 +1,6 @@
 import 'package:coda/logger.dart';
 import 'package:coda/models/tags_model.dart';
+import 'package:coda/screens/ui_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -19,7 +20,7 @@ class GoogleIconButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final List<Tag> tags = ref.read(editedTagsProvider);
     return ElevatedButton.icon(
-      label: const Text('Search web'),
+      label: MediaQuery.of(context).size.width < 600 ? const NilWidget() : const Text('Search web'),
       icon: const FaIcon(FontAwesomeIcons.google),
       onPressed: () {
         String artists = '';
