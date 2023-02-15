@@ -1,7 +1,5 @@
-//import 'package:coda/obsolete/saved_filters_bloc.dart';
 import 'package:coda/communicator.dart';
 import 'package:coda/logger.dart';
-//import 'package:coda/repositories/repositories.dart';
 import 'package:coda/routing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,16 +10,7 @@ import 'models/player_model.dart';
 Logger _logger = getLogger('main', Level.warning);
 
 void main() {
-  runApp(const ProviderScope(child: CodaRP()));
-}
-
-class CodaRP extends StatelessWidget {
-  const CodaRP({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: Coda());
-  }
+  runApp(ProviderScope(child: Coda()));
 }
 
 Communicator? communicator;
