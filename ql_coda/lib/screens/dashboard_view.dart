@@ -1,4 +1,5 @@
 import 'package:coda/screens/ui_util.dart';
+import 'package:coda/screens/volume_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:coda/models/dashboard_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,20 +88,32 @@ class ButtonsContainer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, ref) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      //mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,  // leave space at right hand lower corner for FAB
       children: [
+
+        // volume
+        IconButton(
+          iconSize: 40,
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return VolumeWidget();
+                }
+            );},
+          icon: const Icon(Icons.volume_up),
+        ),
+
         // previous track
         IconButton(
-          iconSize: 50,
+          iconSize: 40,
           onPressed: () => onPrevious(),
           icon: const Icon(Icons.skip_previous),
         ),
-        //const SizedBox(width: 60),
 
         // pause/resume
         IconButton(
-          iconSize: 50,
+          iconSize: 40,
           onPressed: () {
             if (ref.read(playerStateProvider).value != PlayerState.playing) {
               _logger.d('pause/resume - resume');  // paused, stopped, ...
@@ -112,21 +125,19 @@ class ButtonsContainer extends ConsumerWidget {
           },
           icon: Icon(ref.watch(playerStateProvider).value == PlayerState.playing ? Icons.pause : Icons.play_arrow),
         ),
-        //const SizedBox(width: 60),
 
         // random
         IconButton(
-          iconSize: 50,
+          iconSize: 40,
           onPressed: () {
             onRandom();
           },
           icon: const Icon(Icons.autorenew),
         ),
-        //const SizedBox(width: 60),
 
         // next track
         IconButton(
-          iconSize: 50,
+          iconSize: 40,
           onPressed: () {
             Dashboard.resetProgress(0,0);
             onNext();
