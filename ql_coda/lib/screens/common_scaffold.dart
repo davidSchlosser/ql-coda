@@ -48,13 +48,12 @@ class CommonScaffold extends StatelessWidget {
             actions: actions),
         body: child,
         floatingActionButton: floatingActionButton,
-        //bottomNavigationBar: const ControlPanel(),
         drawer: Drawer(
           child: ListView(
             children: <Widget>[
               const DrawerHeader(
                 decoration: BoxDecoration(
-                  color: Colors.blue,
+                  color: Colors.blueGrey,
                 ),
                 child: Text('Coda', style: TextStyle(
                   color: Colors.white,
