@@ -7,7 +7,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:coda/models/volume_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../communicator.dart';
 import 'cover_model.dart';
@@ -112,9 +111,6 @@ class Player {
           playerStateController.add(playerState);
           volumeStreamController.add(quodlibetReportedStatus.volume!);
           elapsedProportionStreamController.add(quodlibetReportedStatus.elapsedProportion!);
-
-          //eliminate following?
-          VolumeModel(0).addEvent(quodlibetReportedStatus.volume);
 
           _logger.d('_quodlibetReportedStatusMsgHandler $quodlibetReportedStatus');
         }
