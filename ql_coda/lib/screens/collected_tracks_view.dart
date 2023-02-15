@@ -12,10 +12,9 @@ import 'package:logger/logger.dart';
 
 Logger _logger = getLogger('album_tracks_view', Level.debug);
 
-// TODO menu: update selected tracks with tags from clipboard, analyse player credits
+// TODO menu: analyse player credits
 
 class TracksView extends ConsumerStatefulWidget {
-  //const TracksView({Key? key}) : super(key: key);
   final String title;
   final PopupMenuButton popupMenu;
   final bool canPlay;
@@ -23,7 +22,6 @@ class TracksView extends ConsumerStatefulWidget {
   final bool canDequeue;
   final bool canEditTags;
   final String sibling;
-  // <void Function(BuildContext context, WidgetRef? ref)>? popupMenu;
 
   const TracksView(this.title, this.popupMenu,
       {this.canPlay = true,
